@@ -23,7 +23,9 @@ int yyline = 1;
 %}
 %option noyywrap
 
-WS          [ \t]
+WS          [ \t\n]
+digit       [0-9]
+integer     [-+]?([1-9]{digit}*|0)
 
 %%
 "/*"        {
@@ -43,6 +45,15 @@ WS          [ \t]
                 if (c1 == '\n' && c2 != EOF)
                   yyline++;
               }
+            }
+
+{WS}        { ;}
+
+
+{integer}   {
+              yylval.ival = atoi(yytext);
+              yTRACE(INTLIT);
+              return INTLIT;
             }
 
 .           { yERROR("Unknown token"); }

@@ -52,13 +52,26 @@ extern int yyline;        /* variable holding current line number   */
 
 
 // TODO:Modify me to add more data types
-// Can access me from flex useing yyval
+// Can access me from flex useing yyval (yylval?)
 
 %union {
-  int num;
+  int     num;
+  int     ival;
+  float   fval;
+  bool    bval;
+  char    *str;
+  char    cval;
 }
 // TODO:Replace myToken with your tokens, you can use these tokens in flex
-%token           myToken1 myToken2  
+%token           <ival> INTLIT
+%token           <fval> FLOATLIT
+%token           <bval> BOOLEANLIT
+%token           <str>  ID
+%token           <str>  KEYWORD   /* int | bool | float | vec2 | vec3 | vec4 | bvec2 | bvec3 | bvec4 | ivec2 | ivec3 | ivec4 | dp3 | lit | rsq | void | const | while | if | else */
+%token           <str>  OPERATOR  /* = | > | < | ! | ^ | * | / | + | == | != | <= | >= | && | || */
+%token           <cval> SEPARATOR /* ;|,|.|(|)|{|}|[|] */
+
+/* %token           myToken1 myToken2 */
 
 
 %start    program
@@ -75,16 +88,21 @@ extern int yyline;        /* variable holding current line number   */
  *    1. Add code to rules for construction of AST.
  ***********************************************************************/
 program
-  :   tokens       
+  :     tokens       
   ;
 tokens
-  :  tokens token  
+  :     tokens token  
   |      
   ;
 // TODO: replace myToken with the token the you defined.
 token
-  :     myToken1 
-  |     myToken2                     
+  :     INTLIT
+  |     FLOATLIT
+  |     BOOLEANLIT
+  |     ID
+  |     KEYWORD
+  |     SEPARATOR
+  |     OPERATOR
   ;
 
 
