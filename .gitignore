@@ -4,3 +4,4 @@ parser.c
 parser.tab.h
 scanner.c
 y.output
+token_output.txt

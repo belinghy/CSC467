@@ -211,9 +211,9 @@ void getOpts (int numargs, char **argstr) {
         case 'I': /* Alternative input during execution */
           if (optarg[2] == 0) {
             i += 1;
-            runInputFile = fileOpen (argstr[i], "r", DEFAULT_RUN_INPUT_FILE);
+            inputFile = fileOpen (argstr[i], "r", DEFAULT_RUN_INPUT_FILE);
           } else
-            runInputFile = fileOpen (&optarg[2], "r", DEFAULT_RUN_INPUT_FILE);
+            inputFile = fileOpen (&optarg[2], "r", DEFAULT_RUN_INPUT_FILE);
           break;
         case 'X': /* supress execution flag */
           suppressExecution = TRUE;
