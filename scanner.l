@@ -33,6 +33,7 @@ boolean     (true|false)
 id          [a-zA-Z|_][a-zA-Z0-9|_]*
 keyword     (int|bool|float|vec2|vec3|vec4|bvec2|bvec3|bvec4|ivec2|ivec3|ivec4|dp3|lit|rsq|void|const|while|if|else)
 operator    (\=|\>|\<|\!|\^|\*|\/|\+|\=\=|\!\=|\<\=|\>\=|\&\&|\|\|)
+separator   (\;|\,|\.|\(|\)|\[|\]|\{|\})
 
 %%
 "/*"        {
@@ -100,6 +101,38 @@ operator    (\=|\>|\<|\!|\^|\*|\/|\+|\=\=|\!\=|\<\=|\>\=|\&\&|\|\|)
               } else if (strcmp(yytext, "||") == 0) {
                 yTRACE(OR);
                 return OR;
+              }
+            }
+
+{separator} {
+              yylval.cval = yytext[0];
+              if (strcmp(yytext, ";") == 0) {
+                yTRACE(SEMICOLON);
+                return SEMICOLON;
+              } else if (strcmp(yytext, ",") == 0) {
+                yTRACE(COMMA);
+                return COMMA;
+              } else if (strcmp(yytext, ".") == 0) {
+                yTRACE(DOT);
+                return DOT;
+              } else if (strcmp(yytext, "(") == 0) {
+                yTRACE(OPEN_BRACKET);
+                return OPEN_BRACKET;
+              } else if (strcmp(yytext, ")") == 0) {
+                yTRACE(CLOSE_BRACKET);
+                return CLOSE_BRACKET;
+              } else if (strcmp(yytext, "{") == 0) {
+                yTRACE(OPEN_BRACES);
+                return OPEN_BRACES;
+              } else if (strcmp(yytext, "}") == 0) {
+                yTRACE(CLOSE_BRACES);
+                return CLOSE_BRACES;
+              } else if (strcmp(yytext, "[") == 0) {
+                yTRACE(OPEN_SQ_BRACKET);
+                return OPEN_SQ_BRACKET;
+              } else if (strcmp(yytext, "]") == 0) {
+                yTRACE(CLOSE_SQ_BRACKET);
+                return CLOSE_SQ_BRACKET;
               }
             }
 

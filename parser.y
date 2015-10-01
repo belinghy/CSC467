@@ -83,6 +83,15 @@ extern int yyline;        /* variable holding current line number   */
 %token           <str>  GE
 %token           <str>  AND
 %token           <str>  OR
+%token           <cval> SEMICOLON
+%token           <cval> COMMA
+%token           <cval> DOT
+%token           <cval> OPEN_BRACKET
+%token           <cval> CLOSE_BRACKET
+%token           <cval> OPEN_BRACES
+%token           <cval> CLOSE_BRACES
+%token           <cval> OPEN_SQ_BRACKET
+%token           <cval> CLOSE_SQ_BRACKET
 /* %token           myToken1 myToken2 */
 
 
