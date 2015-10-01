@@ -68,9 +68,21 @@ extern int yyline;        /* variable holding current line number   */
 %token           <bval> BOOLEANLIT
 %token           <str>  ID
 %token           <str>  KEYWORD   /* int | bool | float | vec2 | vec3 | vec4 | bvec2 | bvec3 | bvec4 | ivec2 | ivec3 | ivec4 | dp3 | lit | rsq | void | const | while | if | else */
-%token           <str>  OPERATOR  /* = | > | < | ! | ^ | * | / | + | == | != | <= | >= | && | || */
 %token           <cval> SEPARATOR /* ;|,|.|(|)|{|}|[|] */
-
+%token           <str>  ASSIGN
+%token           <str>  GT
+%token           <str>  LT
+%token           <str>  NOT
+%token           <str>  XOR
+%token           <str>  MUL
+%token           <str>  DIV
+%token           <str>  ADD
+%token           <str>  EQ
+%token           <str>  NE
+%token           <str>  LE
+%token           <str>  GE
+%token           <str>  AND
+%token           <str>  OR
 /* %token           myToken1 myToken2 */
 
 
@@ -102,7 +114,20 @@ token
   |     ID
   |     KEYWORD
   |     SEPARATOR
-  |     OPERATOR
+  |     ASSIGN
+  |     GT
+  |     LT
+  |     NOT
+  |     XOR
+  |     MUL
+  |     DIV
+  |     ADD
+  |     EQ
+  |     NE
+  |     LE
+  |     GE
+  |     AND
+  |     OR
   ;
 
 

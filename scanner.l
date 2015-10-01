@@ -58,8 +58,49 @@ operator    (\=|\>|\<|\!|\^|\*|\/|\+|\=\=|\!\=|\<\=|\>\=|\&\&|\|\|)
 
 {operator}  {
               yylval.str = yytext;
-              yTRACE(OPERATOR);
-              return OPERATOR;
+              if (strcmp(yytext, "=") == 0) {
+                yTRACE(ASSIGN);
+                return ASSIGN;
+              } else if (strcmp(yytext, ">") == 0) {
+                yTRACE(GT);
+                return GT;
+              } else if (strcmp(yytext, "<") == 0) {
+                yTRACE(LT);
+                return LT;
+              } else if (strcmp(yytext, "!") == 0) {
+                yTRACE(NOT);
+                return NOT;
+              } else if (strcmp(yytext, "^") == 0) {
+                yTRACE(XOR);
+                return XOR;
+              } else if (strcmp(yytext, "*") == 0) {
+                yTRACE(MUL);
+                return MUL;
+              } else if (strcmp(yytext, "/") == 0) {
+                yTRACE(DIV);
+                return DIV;
+              } else if (strcmp(yytext, "+") == 0) {
+                yTRACE(ADD);
+                return ADD;
+              } else if (strcmp(yytext, "==") == 0) {
+                yTRACE(EQ);
+                return EQ;
+              } else if (strcmp(yytext, "!=") == 0) {
+                yTRACE(NE);
+                return NE;
+              } else if (strcmp(yytext, "<=") == 0) {
+                yTRACE(LE);
+                return LE;
+              } else if (strcmp(yytext, ">=") == 0) {
+                yTRACE(GE);
+                return GE;
+              } else if (strcmp(yytext, "&&") == 0) {
+                yTRACE(AND);
+                return AND;
+              } else if (strcmp(yytext, "||") == 0) {
+                yTRACE(OR);
+                return OR;
+              }
             }
 
 {integer}   {
@@ -95,6 +136,8 @@ operator    (\=|\>|\<|\!|\^|\*|\/|\+|\=\=|\!\=|\<\=|\>\=|\&\&|\|\|)
             }
 
 {id}        {
+              /* C doesn't set a limit for the maximum length of a variable */
+              /* maximum size is bounded by the size of the stack */
               yylval.str = yytext;
               yTRACE(ID);
               return ID;
