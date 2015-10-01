@@ -2,6 +2,28 @@
 23
 12
 123.0
++0.0
+0.0
+-0.0
+-0.
++0.
++.01
+-.01
+-2147483648
+2147483647
+/* -2147483649 */
+/* 2147483648 */
+/* -. */
+
+true
+false
+a
+b
+__
+_
+_a
+_a_
+abcdefghijklmnopqrstuvwxyz0123456789
 
 int
 ivec2
@@ -21,6 +43,12 @@ lit
 rsq
 
 
+void
+true
+false
+if
+else
+while
 
 =
 >
@@ -46,10 +74,3 @@ rsq
 }
 [
 ]
-
-void
-true
-false
-if
-else
-while
