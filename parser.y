@@ -67,8 +67,6 @@ extern int yyline;        /* variable holding current line number   */
 %token           <fval> FLOATLIT
 %token           <bval> BOOLEANLIT
 %token           <str>  ID
-%token           <str>  KEYWORD   /* int | bool | float | vec2 | vec3 | vec4 | bvec2 | bvec3 | bvec4 | ivec2 | ivec3 | ivec4 | dp3 | lit | rsq | void | const | while | if | else */
-%token           <cval> SEPARATOR /* ;|,|.|(|)|{|}|[|] */
 %token           <str>  ASSIGN
 %token           <str>  GT
 %token           <str>  LT
@@ -92,6 +90,27 @@ extern int yyline;        /* variable holding current line number   */
 %token           <cval> CLOSE_BRACES
 %token           <cval> OPEN_SQ_BRACKET
 %token           <cval> CLOSE_SQ_BRACKET
+%token           <str>  TYPE_INT
+%token           <str>  TYPE_BOOL
+%token           <str>  TYPE_FLOAT
+%token           <str>  TYPE_VEC2
+%token           <str>  TYPE_VEC3
+%token           <str>  TYPE_VEC4
+%token           <str>  TYPE_BVEC2
+%token           <str>  TYPE_BVEC3
+%token           <str>  TYPE_BVEC4
+%token           <str>  TYPE_IVEC2
+%token           <str>  TYPE_IVEC3
+%token           <str>  TYPE_IVEC4
+%token           <str>  FUNC_DP3
+%token           <str>  FUNC_LIT
+%token           <str>  FUNC_RSQ
+%token           <str>  VOID
+%token           <str>  CONST
+%token           <str>  WHILE
+%token           <str>  IF
+%token           <str>  ELSE
+
 /* %token           myToken1 myToken2 */
 
 
@@ -121,8 +140,6 @@ token
   |     FLOATLIT
   |     BOOLEANLIT
   |     ID
-  |     KEYWORD
-  |     SEPARATOR
   |     ASSIGN
   |     GT
   |     LT
@@ -137,8 +154,27 @@ token
   |     GE
   |     AND
   |     OR
+  |     TYPE_INT
+  |     TYPE_BOOL
+  |     TYPE_FLOAT
+  |     TYPE_VEC2
+  |     TYPE_VEC3
+  |     TYPE_VEC4
+  |     TYPE_BVEC2
+  |     TYPE_BVEC3
+  |     TYPE_BVEC4
+  |     TYPE_IVEC2
+  |     TYPE_IVEC3
+  |     TYPE_IVEC4
+  |     FUNC_DP3
+  |     FUNC_LIT
+  |     FUNC_RSQ
+  |     VOID
+  |     CONST
+  |     WHILE
+  |     IF
+  |     ELSE
   ;
-
 
 %%
 
