@@ -102,6 +102,8 @@ separator   (\;|\,|\.|\(|\)|\[|\]|\{|\})
                 yTRACE(OR);
                 return OR;
               }
+
+			  yERROR("Unknown operator");
             }
 
 {separator} {
@@ -134,6 +136,8 @@ separator   (\;|\,|\.|\(|\)|\[|\]|\{|\})
                 yTRACE(CLOSE_SQ_BRACKET);
                 return CLOSE_SQ_BRACKET;
               }
+
+			  yERROR("Unknown separator");
             }
 
 {integer}   {
@@ -164,8 +168,69 @@ separator   (\;|\,|\.|\(|\)|\[|\]|\{|\})
 
 {keyword}   {
               yylval.str = yytext;
-              yTRACE(KEYWORD);
-              return KEYWORD;
+			  if(strcmp(yytext, "int") == 0){
+		          yTRACE(TYPE_INT);
+		          return TYPE_INT;
+			  } else if(strcmp(yytext, "bool") == 0) {
+		          yTRACE(TYPE_BOOL);
+		          return TYPE_BOOL;
+			  } else if(strcmp(yytext, "float") == 0) {
+		          yTRACE(TYPE_FLOAT);
+		          return TYPE_FLOAT;
+			  } else if(strcmp(yytext, "vec2") == 0) {
+		          yTRACE(TYPE_VEC2);
+		          return TYPE_VEC2;
+			  } else if(strcmp(yytext, "vec3") == 0) {
+		          yTRACE(TYPE_VEC3);
+		          return TYPE_VEC3;
+			  } else if(strcmp(yytext, "vec4") == 0) {
+		          yTRACE(TYPE_VEC4);
+		          return TYPE_VEC4;
+			  } else if(strcmp(yytext, "bvec2") == 0) {
+		          yTRACE(TYPE_BVEC2);
+		          return TYPE_BVEC2;
+			  } else if(strcmp(yytext, "bvec3") == 0) {
+		          yTRACE(TYPE_BVEC3);
+		          return TYPE_BVEC3;
+			  } else if(strcmp(yytext, "bvec4") == 0) {
+		          yTRACE(TYPE_BVEC4);
+		          return TYPE_BVEC4;
+			  } else if(strcmp(yytext, "ivec2") == 0) {
+		          yTRACE(TYPE_IVEC2);
+		          return TYPE_IVEC2;
+			  } else if(strcmp(yytext, "ivec3") == 0) {
+		          yTRACE(TYPE_IVEC3);
+		          return TYPE_IVEC3;
+			  } else if(strcmp(yytext, "ivec4") == 0) {
+		          yTRACE(TYPE_IVEC4);
+		          return TYPE_IVEC4;
+			  } else if(strcmp(yytext, "dp3") == 0) {
+		          yTRACE(FUNC_DP3);
+		          return FUNC_DP3;
+			  } else if(strcmp(yytext, "lit") == 0) {
+		          yTRACE(FUNC_LIT);
+		          return FUNC_LIT;
+			  } else if(strcmp(yytext, "rsq") == 0) {
+		          yTRACE(FUNC_RSQ);
+		          return FUNC_RSQ;
+			  } else if(strcmp(yytext, "void") == 0) {
+		          yTRACE(VOID);
+		          return VOID;
+			  } else if(strcmp(yytext, "const") == 0) {
+		          yTRACE(CONST);
+		          return CONST;
+			  } else if(strcmp(yytext, "while") == 0) {
+		          yTRACE(WHILE);
+		          return WHILE;
+			  } else if(strcmp(yytext, "if") == 0) {
+		          yTRACE(IF);
+		          return IF;
+			  } else if(strcmp(yytext, "else") == 0) {
+		          yTRACE(ELSE);
+		          return ELSE;
+              }
+
+			  yERROR("Unknown keyword");
             }
 
 {id}        {
