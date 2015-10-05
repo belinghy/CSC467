@@ -28,11 +28,12 @@ bool strToInt(const char* str, int* num);
 WS          [ \t\n]
 digit       [0-9]
 integer     [-+]?([1-9]{digit}*|0)
+operator    (\=|\>|\<|\!|\^|\*|\/|\+|\-|\=\=|\!\=|\<\=|\>\=|\&\&|\|\|)
 decimal     (([-+]?{digit}*\.{digit}+)|([-+]?{digit}+\.{digit}*)|([-+]?{digit}+\.{digit}+))
 boolean     (true|false)
 id          [a-zA-Z|_][a-zA-Z0-9|_]*
 keyword     (int|bool|float|vec2|vec3|vec4|bvec2|bvec3|bvec4|ivec2|ivec3|ivec4|dp3|lit|rsq|void|const|while|if|else)
-operator    (\=|\>|\<|\!|\^|\*|\/|\+|\=\=|\!\=|\<\=|\>\=|\&\&|\|\|)
+
 separator   (\;|\,|\.|\(|\)|\[|\]|\{|\})
 
 %%
@@ -83,6 +84,9 @@ separator   (\;|\,|\.|\(|\)|\[|\]|\{|\})
               } else if (strcmp(yytext, "+") == 0) {
                 yTRACE(ADD);
                 return ADD;
+			  } else if (strcmp(yytext, "-") == 0) {
+				yTRACE(SUB);
+				return SUB;
               } else if (strcmp(yytext, "==") == 0) {
                 yTRACE(EQ);
                 return EQ;

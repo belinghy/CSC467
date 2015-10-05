@@ -75,6 +75,7 @@ extern int yyline;        /* variable holding current line number   */
 %token           <str>  MUL
 %token           <str>  DIV
 %token           <str>  ADD
+%token           <str>  SUB
 %token           <str>  EQ
 %token           <str>  NE
 %token           <str>  LE
@@ -135,6 +136,7 @@ tokens
   |      
   ;
 // TODO: replace myToken with the token the you defined.
+// TODO: add built-in variables during lab3 and lab4 as recommended
 token
   :     INTLIT
   |     FLOATLIT
@@ -148,6 +150,7 @@ token
   |     MUL
   |     DIV
   |     ADD
+  |		SUB
   |     EQ
   |     NE
   |     LE
