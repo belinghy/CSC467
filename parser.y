@@ -149,7 +149,7 @@ token
   |     MUL
   |     DIV
   |     ADD
-  |		SUB
+  |     SUB
   |     EQ
   |     NE
   |     LE

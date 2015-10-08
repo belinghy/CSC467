@@ -147,7 +147,7 @@ separator   (\;|\,|\.|\(|\)|\[|\]|\{|\})
 {integer}   {
               int num; 
               if (!strToInt(yytext, &num)) {
-                yERROR("Can't convert string to integer");
+                yERROR("Can't convert string to integer. Possible overflow.");
               }
               yylval.ival = num;
               yTRACE(INTLIT);
@@ -217,9 +217,6 @@ separator   (\;|\,|\.|\(|\)|\[|\]|\{|\})
 			  } else if(strcmp(yytext, "rsq") == 0) {
 		          yTRACE(FUNC_RSQ);
 		          return FUNC_RSQ;
-			  } else if(strcmp(yytext, "void") == 0) {
-		          yTRACE(VOID);
-		          return VOID;
 			  } else if(strcmp(yytext, "const") == 0) {
 		          yTRACE(CONST);
 		          return CONST;
@@ -260,6 +257,7 @@ bool strToInt (const char* str, int* num) {
   int startIndex = 0;
   int numLen = len;
   const char* LIMIT = "2097151";
+  const int LIMIT_LEN = strlen(LIMIT);
 
   if (str[0] == '-') {
     startIndex = 1;
@@ -271,23 +269,24 @@ bool strToInt (const char* str, int* num) {
     LIMIT = "2097151";
   }
 
-  if (numLen > 10) {
+  if (numLen > LIMIT_LEN) {
     return false;
   }
 
-  if (numLen < 10) {
+  if (numLen < LIMIT_LEN) {
     *num = atoi(str);
     return true;
   }
  
   /* num Len == 10 */
-
   for (int i = startIndex; i < len; i++) {
     if (str[i] > LIMIT[i-startIndex]) {
       return false;
+    } else if (str[i] < LIMIT[i-startIndex]) {
+      break;
     }
   }
-
+  
   *num = atoi(str);
   return true;
 }
