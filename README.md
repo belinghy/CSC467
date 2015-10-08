@@ -31,5 +31,4 @@ We use test_cases.txt to specify specific test strings and test_input.txt to tes
 
 ### Responsibilities:
 We write our program using mainly the programming collaboration technique of “paired programming”, where one group member types while the other member reviews, and the two roles are frequently reversed. We also committed our code to a private GitHub repository, and sometimes separately update the files after a discussion to determine the changes to be made. Each group member is responsible for understanding all of the code submitted and for documenting and committing the code that they add individually.
- CSC467
 
