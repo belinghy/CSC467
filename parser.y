@@ -71,7 +71,7 @@ extern int yyline;        /* variable holding current line number   */
 %token           <str>  GT
 %token           <str>  LT
 %token           <str>  NOT
-%token           <str>  XOR
+%token           <str>  EXP
 %token           <str>  MUL
 %token           <str>  DIV
 %token           <str>  ADD
@@ -106,7 +106,6 @@ extern int yyline;        /* variable holding current line number   */
 %token           <str>  FUNC_DP3
 %token           <str>  FUNC_LIT
 %token           <str>  FUNC_RSQ
-%token           <str>  VOID
 %token           <str>  CONST
 %token           <str>  WHILE
 %token           <str>  IF
@@ -146,7 +145,7 @@ token
   |     GT
   |     LT
   |     NOT
-  |     XOR
+  |     EXP
   |     MUL
   |     DIV
   |     ADD
@@ -172,7 +171,6 @@ token
   |     FUNC_DP3
   |     FUNC_LIT
   |     FUNC_RSQ
-  |     VOID
   |     CONST
   |     WHILE
   |     IF

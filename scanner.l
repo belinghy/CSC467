@@ -32,7 +32,7 @@ operator    (\=|\>|\<|\!|\^|\*|\/|\+|\-|\=\=|\!\=|\<\=|\>\=|\&\&|\|\|)
 decimal     (([-+]?{digit}*\.{digit}+)|([-+]?{digit}+\.{digit}*)|([-+]?{digit}+\.{digit}+))
 boolean     (true|false)
 id          [a-zA-Z|_][a-zA-Z0-9|_]*
-keyword     (int|bool|float|vec2|vec3|vec4|bvec2|bvec3|bvec4|ivec2|ivec3|ivec4|dp3|lit|rsq|void|const|while|if|else)
+keyword     (int|bool|float|vec2|vec3|vec4|bvec2|bvec3|bvec4|ivec2|ivec3|ivec4|dp3|lit|rsq|const|while|if|else)
 
 separator   (\;|\,|\.|\(|\)|\[|\]|\{|\})
 
@@ -73,8 +73,8 @@ separator   (\;|\,|\.|\(|\)|\[|\]|\{|\})
                 yTRACE(NOT);
                 return NOT;
               } else if (strcmp(yytext, "^") == 0) {
-                yTRACE(XOR);
-                return XOR;
+                yTRACE(EXP);
+                return EXP;
               } else if (strcmp(yytext, "*") == 0) {
                 yTRACE(MUL);
                 return MUL;
@@ -241,6 +241,9 @@ separator   (\;|\,|\.|\(|\)|\[|\]|\{|\})
               /* C doesn't set a limit for the maximum length of a variable */
               /* maximum size is bounded by the size of the stack */
               yylval.str = yytext;
+              if (strlen(yytext) >= 32) {
+                yERROR("Identifier exceeds maximum length");
+              }
               yTRACE(ID);
               return ID;
             }
@@ -256,16 +259,16 @@ bool strToInt (const char* str, int* num) {
   int len = strlen(str);
   int startIndex = 0;
   int numLen = len;
-  const char* LIMIT = "2147483647";
+  const char* LIMIT = "2097151";
 
   if (str[0] == '-') {
     startIndex = 1;
     numLen--;
-    LIMIT = "2147483648";
+    LIMIT = "2097152";
   } else if (str[0] == '+') {
     startIndex = 1;
     numLen--;
-    LIMIT = "2147483647";
+    LIMIT = "2097151";
   }
 
   if (numLen > 10) {
