@@ -8,8 +8,11 @@ This will output the tests entered in test_cases.txt into token_output.txt.
 
 Alternatively, ./compiler467 -Tn <input_file> -R <output_file> will dump the tokens scanned from the input_file into the output file.
 
+NOTE: To ensure that the -I tag works, we changed runInputFile to inputFile in the getOpts function, in compiler467.c, otherwise the -I tag does nothing.
+
 Approach: 
 When specifying regular expressions, we group tokens into types such as operators and keywords for conveniences, but we scan each operator or keyword into separate tokens. The only tokens grouped into categories are the different types of literals and the identifiers. Each built-in function is also recognized as its own type of token.
+
 Assumptions / Limitations:
 We limit integers to the range +2097151 to -2097152 (i.e. signed 22-bit values)
 We limit variable names to 32 characters
@@ -28,4 +31,3 @@ We use test_cases.txt to specify specific test strings and test_input.txt to tes
 
 Responsibilities:
 We write our program using mainly the programming collaboration technique of “paired programming”, where one group member types while the other member reviews, and the two roles are frequently reversed. We also committed our code to a private GitHub repository, and sometimes separately update the files after a discussion to determine the changes to be made. Each group member is responsible for understanding all of the code submitted and for documenting and committing the code that they add individually.
-
