@@ -128,6 +128,84 @@ extern int yyline;        /* variable holding current line number   */
  *    1. Add code to rules for construction of AST.
  ***********************************************************************/
 program
+  :     scope
+  ;
+scope
+  :     OPEN_BRACES declarations statements CLOSE_BRACES
+  ;
+declarations
+  :     declarations declaration
+  |     /* epsilon */
+  ;
+statements
+  :     statements statement
+  |     /* epsilon */
+  ;
+statement
+  :     variable ASSIGN expression SEMICOLON
+  |     IF OPEN_BRACKET expression CLOSE_BRACKET statement else_statement
+  |     WHILE OPEN_BRACKET expression CLOSE_BRACKET statement
+  |     scope
+  |     SEMICOLON
+  ;
+expression
+  :     constructor
+  |     function
+  |     INTLIT
+  |     FLOATLIT
+  |     BOOLEANLIT
+  |     variable
+  |     unary_op expression
+  |     expression binary_op expression
+  |     OPEN_BRACKET expression CLOSE_BRACKET
+  ;
+variable
+  :     ID
+  |     ID OPEN_SQ_BRACKET INTLIT CLOSE_SQ_BRACKET
+  ;
+else_statement
+  :     ELSE statement
+  |     /* epsilon */
+  ;
+declaration
+  :     type ID SEMICOLON
+  |     type ID ASSIGN expression SEMICOLON
+  |     CONST type ID ASSIGN expression SEMICOLON
+  |     /* epsilon */
+  ;
+constructor
+  :     type OPEN_BRACKET arguments CLOSE_BRACKET
+  ;
+function
+  :     function_name OPEN_BRACKET arguments_opt CLOSE_BRACKET
+  ;
+arguments_opt
+  :     arguments
+  |     /* epsilon */
+  ;
+arguments
+  :     arguments COMMA expression
+  |     expression
+  ;
+type
+  :     TYPE_INT   | TYPE_IVEC2 | TYPE_IVEC3 | TYPE_IVEC4
+  |     TYPE_BOOL  | TYPE_BVEC2 | TYPE_BVEC3 | TYPE_BVEC4 
+  |     TYPE_FLOAT | TYPE_VEC2  | TYPE_VEC3  | TYPE_VEC4
+  ;
+binary_op
+  :     AND | OR | EQ | NE | LT | LE | GT | GE | ADD | SUB | MUL | DIV | EXP
+  ;
+unary_op
+  :     NOT | SUB
+  ;
+function_name
+  :     FUNC_DP3 | FUNC_LIT | FUNC_RSQ
+  ;
+
+
+
+/*
+program
   :     tokens       
   ;
 tokens
@@ -176,7 +254,7 @@ token
   |     IF
   |     ELSE
   ;
-
+*/
 %%
 
 /***********************************************************************ol
