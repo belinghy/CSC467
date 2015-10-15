@@ -171,7 +171,6 @@ declaration
   :     type ID SEMICOLON
   |     type ID ASSIGN expression SEMICOLON
   |     CONST type ID ASSIGN expression SEMICOLON
-  |     /* epsilon */
   ;
 constructor
   :     type OPEN_BRACKET arguments CLOSE_BRACKET
@@ -278,4 +277,3 @@ void yyerror(const char* s) {
   } else
     fprintf(errorFile, ": Reading token %s\n", yytname[YYTRANSLATE(yychar)]);
 }
-

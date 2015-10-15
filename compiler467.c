@@ -73,14 +73,14 @@ int main (int argc, char *argv[]) {
 
 /* Phase 1: Scanner. In phase 2 and after the following code should be
  * removed */
-  while (yylex())
-    if (errorOccurred)
-      break;
+//  while (yylex())
+//    if (errorOccurred)
+//      break;
 
 /* Phase 2: Parser -- should allocate an AST, storing the reference in the
  * global variable "ast", and build the AST there. */
   // Not comment by mistake? Comment for Phase 1
-  //yyparse();
+  yyparse();
 
 /* Phase 3: Call the AST dumping routine if requested */
  // if (dumpAST)
