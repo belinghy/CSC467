@@ -113,6 +113,14 @@ extern int yyline;        /* variable holding current line number   */
 
 /* %token           myToken1 myToken2 */
 
+%nonassoc OR
+%nonassoc AND
+%nonassoc EQ NE LT LE GT GE
+%left ADD SUB
+%left MUL DIV
+%right EXP
+%left NEG /*precedence*/ NOT 
+%left OPEN_SQ_BRACKET CLOSE_SQ_BRACKET OPEN_BRACKET CLOSE_BRACKET
 
 %start    program
 
@@ -155,7 +163,7 @@ expression
   |     FLOATLIT
   |     BOOLEANLIT
   |     variable
-  |     unary_op expression
+  |     unary_op expression %prec NEG
   |     expression binary_op expression
   |     OPEN_BRACKET expression CLOSE_BRACKET
   ;
