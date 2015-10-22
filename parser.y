@@ -113,6 +113,8 @@ extern int yyline;        /* variable holding current line number   */
 
 /* %token           myToken1 myToken2 */
 
+%start    program
+
 %nonassoc OR
 %nonassoc AND
 %nonassoc EQ NE LT LE GT GE
@@ -121,8 +123,6 @@ extern int yyline;        /* variable holding current line number   */
 %right EXP
 %left NEG /*precedence*/ NOT 
 %left OPEN_SQ_BRACKET CLOSE_SQ_BRACKET OPEN_BRACKET CLOSE_BRACKET
-
-%start    program
 
 %%
 
