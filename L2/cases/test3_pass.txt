@@ -7,9 +7,9 @@
 
   if (false) {
     while (vec3(vec4(1))) {
-      dp3();
-      lit();
-      rsq();
+      a = dp3();
+      b = lit();
+      c = rsq();
     }
   }
 
