@@ -43,9 +43,11 @@ void  sourceDump(void);
 
 /* Phase 1: Scanner Interface. For phase 2 and after these declarations
  * are removed */
+/*
 extern int   yylex(void);
 extern char *yytext;
 extern int   yyline;
+ */
 
 /* Phase 2: Parser Interface. Merely uncomment the following line */
 extern int yyparse(void);
