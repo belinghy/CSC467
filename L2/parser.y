@@ -102,6 +102,81 @@ enum {
  *    2. Implement the trace parser option of the compiler
  ***********************************************************************/
 program
+  :     scope
+  ;
+scope
+  :     '{' declarations statements '}'
+  ;
+declarations
+  :     declarations declaration
+  |     /* epsilon */
+  ;
+statements
+  :     statements statement
+  |     /* epsilon */
+  ;
+statement
+  :     variable '=' expression ';'
+  |     IF '(' expression ')' statement else_statement
+  |     WHILE '(' expression ')' statement
+  |     scope
+  |     ';'
+  ;
+expression
+  :     constructor
+  |     function
+  |     INT_C
+  |     FLOAT_C
+  |     TRUE_C
+  |     FALSE_C
+  |     variable
+  |     unary_op expression %prec UMINUS
+  |     expression binary_op expression
+  |     '(' expression ')'
+  ;
+variable
+  :     ID
+  |     ID '[' INT_C ']'
+  ;
+else_statement
+  :     ELSE statement
+  |     /* epsilon */
+  ;
+declaration
+  :     type ID ';'
+  |     type ID '=' expression ';'
+  |     CONST type ID '=' expression ';'
+  ;
+constructor
+  :     type '(' arguments ')'
+  ;
+function
+  :     function_name '(' arguments_opt ')'
+  ;
+arguments_opt
+  :     arguments
+  |     /* epsilon */
+  ;
+arguments
+  :     arguments ',' expression
+  |     expression
+  ;
+type
+  :     INT_T  | IVEC_T
+  |     BOOL_T  | BVEC_T
+  |     FLOAT_T | VEC_T
+  ;
+binary_op
+  :     AND | OR | '=' | NEQ | '<' | LEQ | '>' | GEQ | '+' | '-' | '*' | '/' | '^'
+  ;
+unary_op
+  :     '!' | '-'
+  ;
+function_name
+  :     FUNC
+  ;
+
+/*program
   :   tokens       
   ;
 tokens
@@ -150,7 +225,7 @@ token
   | '}'                                    
   ;
 
-
+*/
 %%
 
 /***********************************************************************ol
