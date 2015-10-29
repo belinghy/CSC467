@@ -1,0 +1,18 @@
+{
+  if (true) {
+    /* syntactically correct but semantically incorrect */
+    ivec2 v = vec2(1.0, 2.0);
+    bvec3 b = bvec2(true, false, false);
+  }
+
+  if (false) {
+    while (vec3(vec4(1))) {
+      dp3();
+      lit();
+      rsq();
+    }
+  }
+
+  {}
+  {{{}}}
+}
