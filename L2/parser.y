@@ -103,50 +103,57 @@ enum {
  *    2. Implement the trace parser option of the compiler
  ***********************************************************************/
 program
-  :     scope
+  :     scope    {yTRACE("program: scope");}
   ;
 scope
-  :     '{' declarations statements '}'
+  :     '{' declarations statements '}'    {yTRACE("scope: '{' declarations statements '}'");}
   ;
 declarations
-  :     declarations declaration
-  |     /* epsilon */
+  :     declarations declaration     {yTRACE("declarations: declarations declaration");}
+  |     /* epsilon */                {yTRACE("declarations: epsilon");}
   ;
 statements
-  :     statements statement
-  |     /* epsilon */
+  :     statements statement    {yTRACE("statements: statements statement");}
+  |     /* epsilon */           {yTRACE("statements: epsilon");}
   ;
 statement
-  :     variable '=' expression ';'
-  |     IF '(' expression ')' statement else_statement
-  |     WHILE '(' expression ')' statement
+  :     statement_other_than_conditional
+  |     complete_conditional
+  |     incomplete_conditional
+  ;
+complete_conditional
+  :     IF '(' expression ')' statement_other_than_conditional ELSE statement
+  |     IF '(' expression ')' complete_conditional ELSE statement
+  ;
+incomplete_conditional
+  :     IF '(' expression ')' statement
+  ;
+statement_other_than_conditional
+  :     variable '=' expression ';'                       {yTRACE("statement: variable '=' expression ';'");}
+  |     WHILE '(' expression ')' statement                
   |     scope
   |     ';'
   ;
 expression
-  :     constructor
+  :     constructor {yTRACE("statements: epsilon");}
   |     function
-  |     INT_C
-  |     FLOAT_C
+  |     INT_C  {yTRACE("expression: INT_C");}
+  |     FLOAT_C {yTRACE("expression: FLOAT_C");}
   |     TRUE_C
   |     FALSE_C
-  |     variable
+  |     variable {yTRACE("expression: variable");}
   |     unary_op expression %prec UMINUS
   |     expression binary_op expression
   |     '(' expression ')'
   ;
 variable
-  :     ID
-  |     ID '[' INT_C ']'
-  ;
-else_statement
-  :     ELSE statement
-  |     /* epsilon */
+  :     ID {yTRACE("variable: ID");}
+  |     ID '[' INT_C ']' {yTRACE("variable: ID '[' INT_C ']'");}
   ;
 declaration
-  :     type ID ';'
-  |     type ID '=' expression ';'
-  |     CONST type ID '=' expression ';'
+  :     type ID ';'  {yTRACE("declaration: type ID ");}
+  |     type ID '=' expression ';'  {yTRACE("declaration: type ID '=' expression ';'\n");}
+  |     CONST type ID '=' expression ';' {yTRACE("declaration: CONST type ID '=' expression ';'\n");}
   ;
 constructor
   :     type '(' arguments ')'
@@ -163,15 +170,31 @@ arguments
   |     expression
   ;
 type
-  :     INT_T  | IVEC_T
-  |     BOOL_T  | BVEC_T
-  |     FLOAT_T | VEC_T
+  :     INT_T  
+  |     IVEC_T
+  |     BOOL_T  
+  |     BVEC_T
+  |     FLOAT_T 
+  |     VEC_T
   ;
-binary_op
-  :     AND | OR | '=' | NEQ | '<' | LEQ | '>' | GEQ | '+' | '-' | '*' | '/' | '^'
+binary_op    
+  :     AND 
+  |     OR 
+  |     '=' 
+  |     NEQ 
+  |     '<' 
+  |     LEQ 
+  |     '>' 
+  |     GEQ 
+  |     '+' 
+  |     '-' 
+  |     '*'
+  |     '/' 
+  |     '^' 
   ;
 unary_op
-  :     '!' | '-'
+  :     '!' 
+  |     '-'
   ;
 function_name
   :     FUNC

@@ -8,6 +8,13 @@
   }
   else {
     temp = gl_Color;
+    temp = temp + 21;
   }
   gl_FragColor = temp;
+
+  if(true)
+    if(true)
+      a = -3;
+  else
+    a = 4;
 }
