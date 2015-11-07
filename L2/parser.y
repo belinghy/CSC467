@@ -81,7 +81,9 @@ enum {
 %token <as_float> FLOAT_C
 %token <as_int>   INT_C
 %token <as_str>   ID
+%type  <as_str>   binary_op
 
+%right    '='
 %left     OR
 %left     AND
 %left     EQ NEQ '<' LEQ '>' GEQ
@@ -90,6 +92,9 @@ enum {
 %right    '^'
 %right    '!' UMINUS
 %left     '[' ']' '(' ')'
+
+%nonassoc STATEMENT
+%nonassoc ELSE
 
 %start    program
 
@@ -110,41 +115,44 @@ scope
   ;
 declarations
   :     declarations declaration     {yTRACE("declarations: declarations declaration");}
-  |     /* epsilon */                {yTRACE("declarations: epsilon");}
+  |     /* epsilon */                // {yTRACE("declarations: epsilon");}
   ;
 statements
   :     statements statement    {yTRACE("statements: statements statement");}
-  |     /* epsilon */           {yTRACE("statements: epsilon");}
+  |     /* epsilon */           // {yTRACE("statements: epsilon");}
   ;
 statement
-  :     statement_other_than_conditional
-  |     complete_conditional
-  |     incomplete_conditional
+  :     statement_other_than_conditional %prec STATEMENT   {yTRACE("statement: statement_other_than_conditional");}
+  |     complete_conditional %prec STATEMENT               {yTRACE("statement: complete_conditional");}
+  |     incomplete_conditional %prec STATEMENT             {yTRACE("statement: incomplete_conditional");}
   ;
 complete_conditional
-  :     IF '(' expression ')' statement_other_than_conditional ELSE statement
-  |     IF '(' expression ')' complete_conditional ELSE statement
+  :     IF '(' expression ')' statement_other_than_conditional ELSE statement %prec ELSE    {yTRACE("complete_conditional: IF '(' expression ')' statement_other_than_conditional ELSE statement");}
+  |     IF '(' expression ')' complete_conditional ELSE statement %prec ELSE                {yTRACE("complete_conditional: IF '(' expression ')' complete_conditional ELSE statement");}
   ;
 incomplete_conditional
-  :     IF '(' expression ')' statement
+  :     IF '(' expression ')' statement    {yTRACE("incomplete_conditional: IF '(' expression ')' statement");}
   ;
 statement_other_than_conditional
-  :     variable '=' expression ';'                       {yTRACE("statement: variable '=' expression ';'");}
-  |     WHILE '(' expression ')' statement                
-  |     scope
-  |     ';'
+  :     variable '=' expression ';'                       {yTRACE("statement_other_than_conditional: variable '=' expression ';'");}
+  |     WHILE '(' expression ')' statement                {yTRACE("statement_other_than_conditional: WHILE '(' expression ')' statement");} 
+  |     scope                                             {yTRACE("statement_other_than_conditional: scope");}
+  |     ';'                                               {yTRACE("statement_other_than_conditional: ';'");}
   ;
 expression
-  :     constructor {yTRACE("statements: epsilon");}
-  |     function
-  |     INT_C  {yTRACE("expression: INT_C");}
-  |     FLOAT_C {yTRACE("expression: FLOAT_C");}
-  |     TRUE_C
-  |     FALSE_C
-  |     variable {yTRACE("expression: variable");}
-  |     unary_op expression %prec UMINUS
-  |     expression binary_op expression
-  |     '(' expression ')'
+  :     unary_op expression %prec UMINUS                  {yTRACE("expression: unary_op expression");}
+  |     rest_of_expression binary_op expression           {char buffer[50]; sprintf(buffer, "expression: expression binary_op rest_of_expression %s", $2); yTRACE(buffer);}
+  |     rest_of_expression                                {yTRACE("expression: rest_of_expression");}
+  ;
+rest_of_expression
+  :     constructor          {yTRACE("rest_of_expression: constructor");}
+  |     function             {yTRACE("rest_of_expression: function");}
+  |     INT_C                {yTRACE("rest_of_expression: INT_C");}
+  |     FLOAT_C              {yTRACE("rest_of_expression: FLOAT_C");}
+  |     TRUE_C               {yTRACE("rest_of_expression: TRUE_C");}
+  |     FALSE_C              {yTRACE("rest_of_expression: FALSE_C");}
+  |     variable             {yTRACE("rest_of_expression: variable");}
+  |     '(' expression ')'   {yTRACE("rest_of_expression: '(' expression ')'");}
   ;
 variable
   :     ID {yTRACE("variable: ID");}
@@ -152,52 +160,53 @@ variable
   ;
 declaration
   :     type ID ';'  {yTRACE("declaration: type ID ");}
-  |     type ID '=' expression ';'  {yTRACE("declaration: type ID '=' expression ';'\n");}
-  |     CONST type ID '=' expression ';' {yTRACE("declaration: CONST type ID '=' expression ';'\n");}
+  |     type ID '=' expression ';'  {yTRACE("declaration: type ID '=' expression ';'");}
+  |     CONST type ID '=' expression ';' {yTRACE("declaration: CONST type ID '=' expression ';'");}
   ;
-constructor
-  :     type '(' arguments ')'
+constructor 
+  :     type '(' arguments ')' {yTRACE("constructor: type '(' arguments ')'");}
   ;
 function
-  :     function_name '(' arguments_opt ')'
+  :     function_name '(' arguments_opt ')' {yTRACE("function: function_name '(' arguments_opt ')'");}
   ;
 arguments_opt
-  :     arguments
-  |     /* epsilon */
+  :     arguments           {yTRACE("arguments_opt: arguments");}
+  |     /* epsilon */       {yTRACE("arguments_opt: epsilon");}
   ;
 arguments
-  :     arguments ',' expression
-  |     expression
+  :     arguments ',' expression     {yTRACE("arguments: arguments ',' expression");}
+  |     expression                   {yTRACE("arguments: expression");}
   ;
 type
-  :     INT_T  
-  |     IVEC_T
-  |     BOOL_T  
-  |     BVEC_T
-  |     FLOAT_T 
-  |     VEC_T
+  :     INT_T         {yTRACE("type: INT_T");}
+  |     IVEC_T        {yTRACE("type: IVEC_T");}
+  |     BOOL_T        {yTRACE("type: BOOL_T");}
+  |     BVEC_T        {yTRACE("type: BVEC_T");}
+  |     FLOAT_T       {yTRACE("type: FLOAT_T");}
+  |     VEC_T         {yTRACE("type: VEC_T");}
   ;
 binary_op    
-  :     AND 
-  |     OR 
-  |     '=' 
-  |     NEQ 
-  |     '<' 
-  |     LEQ 
-  |     '>' 
-  |     GEQ 
-  |     '+' 
-  |     '-' 
-  |     '*'
-  |     '/' 
-  |     '^' 
+  :     AND           {yTRACE("binary_op: AND");}
+  |     OR            {yTRACE("binary_op: OR");}
+  |     '='           {$$ = "="; yTRACE("binary_op: '='");} %prec '='
+  |     EQ            {yTRACE("binary_op: EQ");}  
+  |     NEQ           {yTRACE("binary_op: NEQ");}
+  |     '<'           {yTRACE("binary_op: '<'");} 
+  |     LEQ           {yTRACE("binary_op: LEQ");} 
+  |     '>'           {yTRACE("binary_op: '>'");} 
+  |     GEQ           {yTRACE("binary_op: GEQ");} 
+  |     '+'           {$$ = "+"; yTRACE("binary_op: '+'");} %prec '+'
+  |     '-'           {$$ = "-"; yTRACE("binary_op: '-'");} %prec '-'
+  |     '*'           {$$ = "*"; yTRACE("binary_op: '*'");} %prec '*'
+  |     '/'           {$$ = "/"; yTRACE("binary_op: '/'");} %prec '/'
+  |     '^'           {$$ = "^"; yTRACE("binary_op: '^'");} %prec '^'
   ;
 unary_op
-  :     '!' 
-  |     '-'
+  :     '!'           {yTRACE("unary_op: '!'");} 
+  |     '-'           {yTRACE("unary_op: '-'");}
   ;
 function_name
-  :     FUNC
+  :     FUNC          {yTRACE("function_name: FUNC");}
   ;
 
 /*program
