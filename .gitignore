@@ -2,6 +2,8 @@ compiler467
 *.o
 parser.c
 parser.tab.h
+parser.tab.c
 scanner.c
 y.output
 token_output.txt
+

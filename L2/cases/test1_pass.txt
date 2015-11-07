@@ -1,5 +1,0 @@
-{
-  int c = 5;
-  int b = 4;
-  int a = b + c;
-}

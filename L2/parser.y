@@ -81,7 +81,6 @@ enum {
 %token <as_float> FLOAT_C
 %token <as_int>   INT_C
 %token <as_str>   ID
-%type  <as_str>   binary_op
 
 %right    '='
 %left     OR
@@ -93,6 +92,9 @@ enum {
 %right    '!' UMINUS
 %left     '[' ']' '(' ')'
 
+/* Resolves shift-reduce conflict related to if/else statements.
+ * If the next token is ELSE, shift is performed, so that each ELSE belongs to the most recent IF.
+ */
 %nonassoc STATEMENT
 %nonassoc ELSE
 
@@ -115,11 +117,11 @@ scope
   ;
 declarations
   :     declarations declaration     {yTRACE("declarations: declarations declaration");}
-  |     /* epsilon */                // {yTRACE("declarations: epsilon");}
+  |     /* epsilon */                
   ;
 statements
   :     statements statement    {yTRACE("statements: statements statement");}
-  |     /* epsilon */           // {yTRACE("statements: epsilon");}
+  |     /* epsilon */
   ;
 statement
   :     statement_other_than_conditional %prec STATEMENT   {yTRACE("statement: statement_other_than_conditional");}
@@ -140,19 +142,29 @@ statement_other_than_conditional
   |     ';'                                               {yTRACE("statement_other_than_conditional: ';'");}
   ;
 expression
-  :     unary_op expression %prec UMINUS                  {yTRACE("expression: unary_op expression");}
-  |     rest_of_expression binary_op expression           {char buffer[50]; sprintf(buffer, "expression: expression binary_op rest_of_expression %s", $2); yTRACE(buffer);}
-  |     rest_of_expression                                {yTRACE("expression: rest_of_expression");}
-  ;
-rest_of_expression
-  :     constructor          {yTRACE("rest_of_expression: constructor");}
-  |     function             {yTRACE("rest_of_expression: function");}
-  |     INT_C                {yTRACE("rest_of_expression: INT_C");}
-  |     FLOAT_C              {yTRACE("rest_of_expression: FLOAT_C");}
-  |     TRUE_C               {yTRACE("rest_of_expression: TRUE_C");}
-  |     FALSE_C              {yTRACE("rest_of_expression: FALSE_C");}
-  |     variable             {yTRACE("rest_of_expression: variable");}
-  |     '(' expression ')'   {yTRACE("rest_of_expression: '(' expression ')'");}
+  :     unary_op expression %prec UMINUS   {yTRACE("expression: unary_op expression");} /* the ! and '-' as a unary operator have the same precedence, UMINUS */
+  |     expression AND expression          {yTRACE("expression: expression AND expression");}
+  |     expression OR  expression          {yTRACE("expression: expression OR expression");}
+  |     expression '=' expression          {yTRACE("expression: expression '=' expression");}
+  |     expression EQ  expression          {yTRACE("expression: expression EQ expression");}  
+  |     expression NEQ expression          {yTRACE("expression: expression NEQ expression");}
+  |     expression '<' expression          {yTRACE("expression: expression '<' expression");} 
+  |     expression LEQ expression          {yTRACE("expression: expression LEQ expression");} 
+  |     expression '>' expression          {yTRACE("expression: expression '>' expression");} 
+  |     expression GEQ expression          {yTRACE("expression: expression GEQ expression");} 
+  |     expression '+' expression          {yTRACE("expression: expression '+' expression");}
+  |     expression '-' expression          {yTRACE("expression: expression '-' expression");}
+  |     expression '*' expression          {yTRACE("expression: expression '*' expression");}
+  |     expression '/' expression          {yTRACE("expression: expression '/' expression");}
+  |     expression '^' expression          {yTRACE("expression: expression '^' expression");}
+  |     constructor                        {yTRACE("expression: constructor");}
+  |     function                           {yTRACE("expression: function");}
+  |     INT_C                              {yTRACE("expression: INT_C");}
+  |     FLOAT_C                            {yTRACE("expression: FLOAT_C");}
+  |     TRUE_C                             {yTRACE("expression: TRUE_C");}
+  |     FALSE_C                            {yTRACE("expression: FALSE_C");}
+  |     variable                           {yTRACE("expression: variable");}
+  |     '(' expression ')'                 {yTRACE("expression: '(' expression ')'");}
   ;
 variable
   :     ID {yTRACE("variable: ID");}
@@ -185,22 +197,6 @@ type
   |     FLOAT_T       {yTRACE("type: FLOAT_T");}
   |     VEC_T         {yTRACE("type: VEC_T");}
   ;
-binary_op    
-  :     AND           {yTRACE("binary_op: AND");}
-  |     OR            {yTRACE("binary_op: OR");}
-  |     '='           {$$ = "="; yTRACE("binary_op: '='");} %prec '='
-  |     EQ            {yTRACE("binary_op: EQ");}  
-  |     NEQ           {yTRACE("binary_op: NEQ");}
-  |     '<'           {yTRACE("binary_op: '<'");} 
-  |     LEQ           {yTRACE("binary_op: LEQ");} 
-  |     '>'           {yTRACE("binary_op: '>'");} 
-  |     GEQ           {yTRACE("binary_op: GEQ");} 
-  |     '+'           {$$ = "+"; yTRACE("binary_op: '+'");} %prec '+'
-  |     '-'           {$$ = "-"; yTRACE("binary_op: '-'");} %prec '-'
-  |     '*'           {$$ = "*"; yTRACE("binary_op: '*'");} %prec '*'
-  |     '/'           {$$ = "/"; yTRACE("binary_op: '/'");} %prec '/'
-  |     '^'           {$$ = "^"; yTRACE("binary_op: '^'");} %prec '^'
-  ;
 unary_op
   :     '!'           {yTRACE("unary_op: '!'");} 
   |     '-'           {yTRACE("unary_op: '-'");}
@@ -209,56 +205,6 @@ function_name
   :     FUNC          {yTRACE("function_name: FUNC");}
   ;
 
-/*program
-  :   tokens       
-  ;
-tokens
-  :  tokens token  
-  |
-  ;
-token
-  : ID 
-  | AND
-  | OR
-  | NEQ
-  | LEQ
-  | GEQ
-  | EQ
-  | TRUE_C
-  | FALSE_C
-  | INT_C
-  | FLOAT_C
-  | CONST
-  | ELSE
-  | IF
-  | WHILE
-  | FLOAT_T
-  | INT_T
-  | BOOL_T
-  | VEC_T
-  | IVEC_T
-  | BVEC_T
-  | FUNC               
-  | '+'
-  | '-'
-  | '*'
-  | '/'
-  | '^'  
-  | '!'
-  | '='
-  | '<'
-  | '>'   
-  | ','
-  | ';'
-  | '('
-  | ')'
-  | '['
-  | ']'
-  | '{'
-  | '}'                                    
-  ;
-
-*/
 %%
 
 /***********************************************************************ol
