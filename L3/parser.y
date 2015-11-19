@@ -102,6 +102,12 @@ enum {
 // type declarations
 // TODO: fill this out
 %type <as_ast> expression
+%type <as_ast> variable
+%type <as_ast> statement
+%type <as_ast> statements
+%type <as_ast> program
+%type <as_ast> scope
+
 
 // expect one shift/reduce conflict, where Bison chooses to shift
 // the ELSE.
@@ -120,12 +126,18 @@ enum {
  ***********************************************************************/
 program
   : scope 
-      { yTRACE("program -> scope\n") } 
+      {
+        yTRACE("program -> scope\n")
+        ast = $1;
+      } 
   ;
 
 scope
   : '{' declarations statements '}'
-      { yTRACE("scope -> { declarations statements }\n") }
+      {
+        yTRACE("scope -> { declarations statements }\n") 
+        $$ = $3;
+      }
   ;
 
 declarations
@@ -137,9 +149,14 @@ declarations
 
 statements
   : statements statement
-      { yTRACE("statements -> statements statement\n") }
+      {
+        yTRACE("statements -> statements statement\n");
+        $$ = $2;
+      }
   | 
-      { yTRACE("statements -> \n") }
+      {
+        yTRACE("statements -> \n")
+      }
   ;
 
 declaration
@@ -152,8 +169,11 @@ declaration
   ;
 
 statement
-  : variable '=' expression ';'
-      { yTRACE("statement -> variable = expression ;\n") }
+  : variable '=' expression ';' 
+      { 
+        yTRACE("statement -> variable = expression ;\n");
+        $$ = ast_allocate(ASSIGNMENT_NODE, '=', $1 , $3 );
+      }
   | IF '(' expression ')' statement ELSE statement %prec WITH_ELSE
       { yTRACE("statement -> IF ( expression ) statement ELSE statement \n") }
   | IF '(' expression ')' statement %prec WITHOUT_ELSE
@@ -211,7 +231,10 @@ expression
   | expression GEQ expression %prec GEQ
       { yTRACE("expression -> expression GEQ expression \n") }
   | expression '+' expression %prec '+'
-      { yTRACE("expression -> expression + expression \n") }
+      {
+        yTRACE("expression -> expression + expression \n");
+        $$ = ast_allocate(BINARY_EXPRESSION_NODE, '+', $1 , $3 );
+      }
   | expression '-' expression %prec '-'
       { yTRACE("expression -> expression - expression \n") }
   | expression '*' expression %prec '*'
@@ -227,7 +250,10 @@ expression
   | FALSE_C
       { yTRACE("expression -> FALSE_C \n") }
   | INT_C
-      { yTRACE("expression -> INT_C \n") }
+      { 
+        yTRACE("expression -> INT_C \n");
+        $$ = ast_allocate(INT_NODE, $1);
+      }
   | FLOAT_C
       { yTRACE("expression -> FLOAT_C \n") }
 
@@ -240,7 +266,10 @@ expression
 
 variable
   : ID
-      { yTRACE("variable -> ID \n") }
+      {
+        yTRACE("variable -> ID \n");
+        $$ = ast_allocate(IDENT_NODE, $1);
+      }
   | ID '[' INT_C ']' %prec '['
       { yTRACE("variable -> ID [ INT_C ] \n") }
   ;

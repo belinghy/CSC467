@@ -3,7 +3,7 @@
 #define AST_H_ 1
 
 #include <stdarg.h>
-#include <string>
+#include <vector>
 
 // Dummy node just so everything compiles, create your own node/nodes
 //
@@ -34,13 +34,14 @@ typedef enum {
   FUNCTION_NODE         = (1 << 2) | (1 << 9),
   CONSTRUCTOR_NODE      = (1 << 2) | (1 << 10),
 
-  STATEMENT_NODE        = (1 << 1),
+  STATEMENTS_NODE       = (1 << 1),
   IF_STATEMENT_NODE     = (1 << 1) | (1 << 11),
   WHILE_STATEMENT_NODE  = (1 << 1) | (1 << 12),
   ASSIGNMENT_NODE       = (1 << 1) | (1 << 13),
   NESTED_SCOPE_NODE     = (1 << 1) | (1 << 14),
+  EMPTY_STATEMENT_NODE  = (1 << 1) | (1 << 15),
 
-  DECLARATION_NODE      = (1 << 15)
+  DECLARATIONS_NODE     = (1 << 16)
 } node_kind;
 
 struct node_ {
@@ -53,6 +54,11 @@ struct node_ {
       // declarations?
       // statements?
     } scope;
+
+    struct {
+      char *name;
+      std::vector<node> *children;
+    } statements;
   
     struct {
       int op;
@@ -73,6 +79,14 @@ struct node_ {
       int func;
       node **params;
     } function_expr;
+
+    struct {
+      int op;
+      node *left;
+      node *right;
+    } assignment_stmt;
+
+
     // etc.
   };
 };
