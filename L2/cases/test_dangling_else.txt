@@ -1,0 +1,35 @@
+{
+  /*
+  if(true)
+    if(true)
+      a = -3;
+  	else
+	  a = 4;
+  */
+  if(true) if(true) a = -3; else a = 4;
+
+  /*
+  if(true)
+    if(true)
+      a = -3;
+  	else
+	  a = 4;
+
+  if(3)
+    ;
+  else 
+    ;
+
+  if(4)
+    ;
+  else
+    ;
+  */
+  if(1) if(2) a = -3; else; if(3); else; if(4); else;
+
+  if(true){
+    if(true)
+      a = -3;
+  } else
+	a = 4;
+}

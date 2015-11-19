@@ -1,4 +1,4 @@
-{ 
+{
   vec4 temp;
   if (true){
     temp[0] = gl_Color[0] * gl_FragCoord[0];
@@ -11,10 +11,4 @@
     temp = temp + 21;
   }
   gl_FragColor = temp;
-
-  if(true)
-    if(true)
-      a = -3;
-  else
-    a = 4;
 }
