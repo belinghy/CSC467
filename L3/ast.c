@@ -93,6 +93,8 @@ node *ast_allocate(node_kind kind, ...) {
   default: break;
   }
 
+  ast->line = va_arg(args, int);
+
   va_end(args);
 
   return ast;

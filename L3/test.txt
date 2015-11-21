@@ -1,6 +1,5 @@
 {
   int x;
-  int y;
   x = 1 + 2;
   y = 5;
   x = x + y;

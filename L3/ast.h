@@ -3,7 +3,6 @@
 #define AST_H_ 1
 
 #include <stdarg.h>
-#include <vector>
 
 // Dummy node just so everything compiles, create your own node/nodes
 //
