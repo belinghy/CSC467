@@ -27,7 +27,39 @@ node *ast_allocate(node_kind kind, ...) {
 
   switch(kind) {
   
-  // ...
+  case SCOPE_NODE:
+    ast->scope.name = va_arg(args, char *);
+    ast->scope.declarations = va_arg(args, node *);
+    ast->scope.statements = va_arg(args, node *);
+    break;
+
+  case DECLARATIONS_NODE:
+  {
+    ast->declarations.name = va_arg(args, char *);
+    node *declarations = va_arg(args, node *);
+    if (declarations != NULL) {
+      ast->declarations.declarations = declarations;
+      ast->declarations.declaration = va_arg(args, node *);
+    } else {
+      ast->declarations.declarations = NULL;
+      ast->declarations.declaration = NULL;
+    }
+    break;
+  }
+
+  case STATEMENTS_NODE:
+  {
+    ast->statements.name = va_arg(args, char *);
+    node *statements = va_arg(args, node *);
+    if (statements != NULL) {
+      ast->statements.statements = statements;
+      ast->statements.statement = va_arg(args, node *);
+    } else {
+      ast->statements.statements = NULL;
+      ast->statements.statements = NULL;
+    }
+    break;
+  }
 
   case BINARY_EXPRESSION_NODE:
     ast->binary_expr.op = va_arg(args, int);
@@ -36,11 +68,20 @@ node *ast_allocate(node_kind kind, ...) {
     break;
 
   case INT_NODE:
-    ast->integer_expr = va_arg(args, int);
+    ast->int_literal.value = va_arg(args, int);
     break;
 
-  case IDENT_NODE:
-    ast->id_expr = va_arg(args, char*);
+  case FLOAT_NODE:
+    ast->float_literal.value = va_arg(args, float);
+    break;
+
+  case VAR_NODE:
+    ast->var_expr.identifier = va_arg(args, char*);
+    break;
+
+  case ARRAY_NODE:
+    ast->array_expr.identifier = va_arg(args, char*);
+    ast->array_expr.length = va_arg(args, int);    
     break;
 
   case ASSIGNMENT_NODE:
@@ -49,25 +90,6 @@ node *ast_allocate(node_kind kind, ...) {
     ast->assignment_stmt.right = va_arg(args, node *);
     break;
 
-  case STATEMENTS_NODE:
-    {
-      ast->statements.name = va_arg(args, char *);
-      node *statements_list = va_arg(args, node *);
-      if(statements_list == NULL){
-        // new list
-        (*ast).statements.children = new std::vector<node *>();
-      } else {
-        if ( ((*statements_list).statements.children) == NULL ) {
-          (*statements_list).statements.children = new std::vector<node *>();
-        }
-        node *new_statement = va_arg(args, node *);
-        //concatonate
-        (*((*statements_list).statements.children)).push_back(new_statement);
-        free(ast);
-        //ast = statements_list;
-      }
-      break;
-    }
   default: break;
   }
 
@@ -103,25 +125,37 @@ void ast_print_recurse(node *n, int level) {
 
 void ast_print_node(node *n) {
   switch (n->kind) {
-  
-  case BINARY_EXPRESSION_NODE:
-    printf("%d", n->binary_expr.op);
+
+  case SCOPE_NODE:
+    printf("%s", n->scope.name);
     break;
 
-  case INT_NODE:
-    printf("%d", n->integer_expr);
-    break;
-  
-  case IDENT_NODE:
-    printf("%s", n->id_expr);
-    break;
-
-  case ASSIGNMENT_NODE:
-    printf("%c", n->assignment_stmt.op);
+  case DECLARATIONS_NODE:
+    printf("%s", n->declarations.name);
     break;
 
   case STATEMENTS_NODE:
     printf("%s", n->statements.name);
+    break;
+  
+  case BINARY_EXPRESSION_NODE:
+    printf("%c", n->binary_expr.op);
+    break;
+
+  case INT_NODE:
+    printf("%d", n->int_literal.value);
+    break;
+  
+  case FLOAT_NODE:
+    printf("%f", n->float_literal.value);
+    break;
+
+  case VAR_NODE:
+    printf("%s", n->var_expr.identifier);
+    break;
+
+  case ASSIGNMENT_NODE:
+    printf("%c", n->assignment_stmt.op);
     break;
 
   default:
@@ -133,33 +167,60 @@ void ast_print_node(node *n) {
 node *ast_get_child(node *n, int child_index) {
 
   switch (n->kind) {
+
+  case SCOPE_NODE:
+  {
+    if (child_index == 0) {
+      return n->scope.declarations;
+    } else if (child_index == 1) {
+      return n->scope.statements;
+    }
+    break;
+  }
+
+  case DECLARATIONS_NODE:
+  {
+    if (child_index == 0) {
+      return n->declarations.declarations;
+    } else if (child_index == 1) {
+      return n->declarations.declaration;
+    }
+    break;
+  }
+
+  case STATEMENTS_NODE:
+  {
+    if (child_index == 0) {
+      return n->statements.statements;
+    } else if (child_index == 1) {
+      return n->statements.statement;
+    }
+    break;
+  }
   
   case BINARY_EXPRESSION_NODE:
+  {
     if (child_index == 0) {
       return n->binary_expr.left;
     } else if (child_index == 1) {
       return n->binary_expr.right;
     }
     break;
-  
+  }
+
   case INT_NODE:
-  case IDENT_NODE:
+  case VAR_NODE:
     break;
 
   case ASSIGNMENT_NODE:
+  {
     if (child_index == 0) {
       return n->assignment_stmt.left;
     } else if (child_index == 1) {
       return n->assignment_stmt.right;
     }
     break;
-
-  case STATEMENTS_NODE:
-    if (((*n).statements.children) != NULL &&
-        child_index < (*((*n).statements.children)).size()) {
-      return (*((*n).statements.children)).at(child_index);
-    }
-    break;
+  }
 
   default:
     break;

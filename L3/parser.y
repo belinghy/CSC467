@@ -105,6 +105,8 @@ enum {
 %type <as_ast> variable
 %type <as_ast> statement
 %type <as_ast> statements
+%type <as_ast> declaration
+%type <as_ast> declarations
 %type <as_ast> program
 %type <as_ast> scope
 
@@ -136,15 +138,21 @@ scope
   : '{' declarations statements '}'
       {
         yTRACE("scope -> { declarations statements }\n") 
-        $$ = $3;
+        $$ = ast_allocate(SCOPE_NODE, "scope", $2, $3);
       }
   ;
 
 declarations
   : declarations declaration
-      { yTRACE("declarations -> declarations declaration\n") }
+      {
+        yTRACE("declarations -> declarations declaration\n");
+        $$ = ast_allocate(DECLARATIONS_NODE, "declarations", $1, $2);
+      }
   | 
-      { yTRACE("declarations -> \n") }
+      {
+        yTRACE("declarations -> \n");
+        $$ = ast_allocate(DECLARATIONS_NODE, "declarations", NULL);
+      }
   ;
 
 statements
@@ -162,9 +170,15 @@ statements
 
 declaration
   : type ID ';' 
-      { yTRACE("declaration -> type ID ;\n") }
+      {
+        yTRACE("declaration -> type ID ;\n")
+        $$ = ast_allocate(DECLARATION, $1, $2);
+      }
   | type ID '=' expression ';'
-      { yTRACE("declaration -> type ID = expression ;\n") }
+      {
+        yTRACE("declaration -> type ID = expression ;\n")
+        $$ = ast_allocate(DECLARATION, $1, $2, $4);
+      }
   | CONST type ID '=' expression ';'
       { yTRACE("declaration -> CONST type ID = expression ;\n") }
   ;
@@ -269,10 +283,13 @@ variable
   : ID
       {
         yTRACE("variable -> ID \n");
-        $$ = ast_allocate(IDENT_NODE, $1);
+        $$ = ast_allocate(VAR_NODE, $1);
       }
   | ID '[' INT_C ']' %prec '['
-      { yTRACE("variable -> ID [ INT_C ] \n") }
+      {
+        yTRACE("variable -> ID [ INT_C ] \n")
+        $$ = ast_allocate(ARRAY_NODE, $1, $3);
+      }
   ;
 
 arguments

@@ -31,17 +31,19 @@ typedef enum {
   FLOAT_NODE            = (1 << 2) | (1 << 6),
   IDENT_NODE            = (1 << 2) | (1 << 7),
   VAR_NODE              = (1 << 2) | (1 << 8),
-  FUNCTION_NODE         = (1 << 2) | (1 << 9),
-  CONSTRUCTOR_NODE      = (1 << 2) | (1 << 10),
+  ARRAY_NODE            = (1 << 2) | (1 << 9),
+  FUNCTION_NODE         = (1 << 2) | (1 << 10),
+  CONSTRUCTOR_NODE      = (1 << 2) | (1 << 11),
 
   STATEMENTS_NODE       = (1 << 1),
-  IF_STATEMENT_NODE     = (1 << 1) | (1 << 11),
-  WHILE_STATEMENT_NODE  = (1 << 1) | (1 << 12),
-  ASSIGNMENT_NODE       = (1 << 1) | (1 << 13),
-  NESTED_SCOPE_NODE     = (1 << 1) | (1 << 14),
-  EMPTY_STATEMENT_NODE  = (1 << 1) | (1 << 15),
+  IF_STATEMENT_NODE     = (1 << 1) | (1 << 12),
+  WHILE_STATEMENT_NODE  = (1 << 1) | (1 << 13),
+  ASSIGNMENT_NODE       = (1 << 1) | (1 << 14),
+  NESTED_SCOPE_NODE     = (1 << 1) | (1 << 15),
+  EMPTY_STATEMENT_NODE  = (1 << 1) | (1 << 16),
 
-  DECLARATIONS_NODE     = (1 << 16)
+  DECLARATIONS_NODE     = (1 << 17),
+  DECLARATION_NODE      = (1 << 18)
 } node_kind;
 
 struct node_ {
@@ -51,13 +53,21 @@ struct node_ {
 
   union {
     struct {
-      // declarations?
-      // statements?
+      char *name;
+      node *declarations;
+      node *statements;
     } scope;
 
     struct {
       char *name;
-      std::vector<node*> *children;
+      node *declarations;
+      node *declaration;
+    } declarations;
+
+    struct {
+      char *name;
+      node *statements;
+      node *statement;
     } statements;
   
     struct {
@@ -71,21 +81,28 @@ struct node_ {
       node *right;
     } binary_expr;
 
-    int integer_expr;
-    float float_expr;
-    char *id_expr;
-    
-    struct {
-      int func;
-      node **params;
-    } function_expr;
-
     struct {
       int op;
       node *left;
       node *right;
     } assignment_stmt;
 
+    struct {
+      int value;
+    } int_literal;
+
+    struct {
+      float value;
+    } float_literal;
+
+    struct {
+      char *identifier;
+    } var_expr;
+
+    struct {
+      char *identifier;
+      int length;
+    } array_expr;
 
     // etc.
   };
