@@ -68,10 +68,6 @@ struct node_ {
     } declarations;
 
     struct {
-
-    }
-
-    struct {
       char *name;
       node *statements;
       node *statement;
