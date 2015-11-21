@@ -21,7 +21,7 @@
 ###########################################################################
 # Compiler and Compiler Flags
 ###########################################################################
-CC      =g++
+CC      =g++ -std=c++11 #for unordered_map
 CFLAGS  =-g -O0 -Wall -fpermissive
 LDLIBS  =-lfl
 
@@ -39,7 +39,7 @@ YFLAGS  =-dtvy
 #LEXER_OBJ =handlex.o
 LEXER_OBJ =scanner.o
 PARSER_OBJ=parser.o
-AST_OBJ   =ast.o semantic.o symbol.o
+AST_OBJ   =ast.o semantic.o symbol.o type.o
 #CODE_OBJ  =codegen.o  
 OBJs      =compiler467.o globalvars.o $(LEXER_OBJ) \
            $(PARSER_OBJ) $(AST_OBJ)   

@@ -172,12 +172,12 @@ declaration
   : type ID ';' 
       {
         yTRACE("declaration -> type ID ;\n")
-        $$ = ast_allocate(DECLARATION, $1, $2);
+        //$$ = ast_allocate(DECLARATION, $1, $2);
       }
   | type ID '=' expression ';'
       {
         yTRACE("declaration -> type ID = expression ;\n")
-        $$ = ast_allocate(DECLARATION, $1, $2, $4);
+        //$$ = ast_allocate(DECLARATION, $1, $2, $4);
       }
   | CONST type ID '=' expression ';'
       { yTRACE("declaration -> CONST type ID = expression ;\n") }
