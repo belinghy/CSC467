@@ -20,6 +20,7 @@
 
 #include "common.h"
 #include "ast.h"
+#include "type.h"
 #include "symbol.h"
 #include "semantic.h"
 
@@ -137,71 +138,105 @@ program
 scope
   : '{' declarations statements '}'
       {
+        // ast->scope
         yTRACE("scope -> { declarations statements }\n") 
-        $$ = ast_allocate(SCOPE_NODE, "scope", $2, $3);
+        $$ = ast_allocate(SCOPE_NODE, "scope", $2, $3, yyline);
       }
   ;
 
 declarations
   : declarations declaration
       {
+        // ast->declarations
         yTRACE("declarations -> declarations declaration\n");
-        $$ = ast_allocate(DECLARATIONS_NODE, "declarations", $1, $2);
+        $$ = ast_allocate(DECLARATIONS_NODE, "declarations", $1, $2, yyline);
       }
   | 
       {
+        // ast->declarations
         yTRACE("declarations -> \n");
-        $$ = ast_allocate(DECLARATIONS_NODE, "declarations", NULL);
+        $$ = ast_allocate(DECLARATIONS_NODE, "declarations", NULL, yyline);
       }
   ;
 
 statements
   : statements statement
       {
+        // ast->statements
         yTRACE("statements -> statements statement\n");
-        $$ = ast_allocate(STATEMENTS_NODE, "statements", $1, $2);
+        $$ = ast_allocate(STATEMENTS_NODE, "statements", $1, $2, yyline);
       }
   | 
       {
+        // ast->statements
         yTRACE("statements -> \n")
-        $$ = ast_allocate(STATEMENTS_NODE, "statements", NULL);
+        $$ = ast_allocate(STATEMENTS_NODE, "statements", NULL, yyline);
       }
   ;
 
 declaration
   : type ID ';' 
       {
+        // ast->
         yTRACE("declaration -> type ID ;\n")
-        //$$ = ast_allocate(DECLARATION, $1, $2);
+        $1.length = 1;
+        $$ = ast_allocate(DECLARATION, $1, $2, yyline);
       }
   | type ID '=' expression ';'
       {
+        // ast->
         yTRACE("declaration -> type ID = expression ;\n")
-        //$$ = ast_allocate(DECLARATION, $1, $2, $4);
+        $$ = ast_allocate(DECLARATION_WITH_INIT_NODE, $1, $2, $4, yyline);
       }
   | CONST type ID '=' expression ';'
-      { yTRACE("declaration -> CONST type ID = expression ;\n") }
+      {
+        // ast->
+        yTRACE("declaration -> CONST type ID = expression ;\n")
+        $$ = ast_allocate(DECLARATION_CONST_NODE, $1, $2, $4, yyline);
+      }
   ;
 
 statement
   : variable '=' expression ';' 
-      { 
+      {
+        // ast->assignment_stmt
         yTRACE("statement -> variable = expression ;\n");
-        $$ = ast_allocate(ASSIGNMENT_NODE, '=', $1 , $3 );
+        $$ = ast_allocate(ASSIGNMENT_NODE, '=', $1 , $3, yyline);
       }
   | IF '(' expression ')' statement ELSE statement %prec WITH_ELSE
-      { yTRACE("statement -> IF ( expression ) statement ELSE statement \n") }
+      {
+        // ast->
+        yTRACE("statement -> IF ( expression ) statement ELSE statement \n")
+        $$ = ast_allocate(IF_WITH_ELSE_STATEMENT_NODE, $3, $5, $7, yyline);
+      }
   | IF '(' expression ')' statement %prec WITHOUT_ELSE
-      { yTRACE("statement -> IF ( expression ) statement \n") }
+      {
+        // ast->
+        yTRACE("statement -> IF ( expression ) statement \n")
+        $$ = ast_allocate(IF_STATEMENT_NODE, $3, $5, yyline);
+      }
   | scope 
-      { yTRACE("statement -> scope \n") }
+      {
+        // ast->scope
+        yTRACE("statement -> scope \n")
+        $$ = ast_allocate(SCOPE_NODE, $1);
+      }
   | ';'
-      { yTRACE("statement -> ; \n") }
+      {
+        // no info, no need to create a node
+        yTRACE("statement -> ; \n")
+      }
   ;
 
 type
   : INT_T
-      { yTRACE("type -> INT_T \n") }
+      {
+        // ast->
+        yTRACE("type -> INT_T \n")
+        Type int_type;
+        int_type.type = INT:
+        $$ = int_type;
+      }
   | IVEC_T
       { yTRACE("type -> IVEC_T \n") }
   | BOOL_T
