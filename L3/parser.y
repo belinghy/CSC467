@@ -151,11 +151,12 @@ statements
   : statements statement
       {
         yTRACE("statements -> statements statement\n");
-        $$ = $2;
+        $$ = ast_allocate(STATEMENTS_NODE, "statements", $1, $2);
       }
   | 
       {
         yTRACE("statements -> \n")
+        $$ = ast_allocate(STATEMENTS_NODE, "statements", NULL);
       }
   ;
 

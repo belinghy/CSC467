@@ -54,14 +54,17 @@ node *ast_allocate(node_kind kind, ...) {
       ast->statements.name = va_arg(args, char *);
       node *statements_list = va_arg(args, node *);
       if(statements_list == NULL){
-        //new list
-        ast->statements.children = new std::vector<node>();
+        // new list
+        (*ast).statements.children = new std::vector<node *>();
       } else {
+        if ( ((*statements_list).statements.children) == NULL ) {
+          (*statements_list).statements.children = new std::vector<node *>();
+        }
         node *new_statement = va_arg(args, node *);
         //concatonate
-        statements_list->statements.children->push_back(*new_statement);
+        (*((*statements_list).statements.children)).push_back(new_statement);
         free(ast);
-        ast = statements_list;
+        //ast = statements_list;
       }
       break;
     }
@@ -84,7 +87,7 @@ void ast_print_recurse(node *n, int level) {
   if (n == NULL) return;
 
   for (int i = 0; i < level; i++) {
-    printf("  ");
+    printf("    ");
   }
 
   ast_print_node(n);
@@ -117,6 +120,10 @@ void ast_print_node(node *n) {
     printf("%c", n->assignment_stmt.op);
     break;
 
+  case STATEMENTS_NODE:
+    printf("%s", n->statements.name);
+    break;
+
   default:
     break;
   }
@@ -144,6 +151,13 @@ node *ast_get_child(node *n, int child_index) {
       return n->assignment_stmt.left;
     } else if (child_index == 1) {
       return n->assignment_stmt.right;
+    }
+    break;
+
+  case STATEMENTS_NODE:
+    if (((*n).statements.children) != NULL &&
+        child_index < (*((*n).statements.children)).size()) {
+      return (*((*n).statements.children)).at(child_index);
     }
     break;
 

@@ -57,7 +57,7 @@ struct node_ {
 
     struct {
       char *name;
-      std::vector<node> *children;
+      std::vector<node*> *children;
     } statements;
   
     struct {
