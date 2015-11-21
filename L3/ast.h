@@ -43,13 +43,16 @@ typedef enum {
   EMPTY_STATEMENT_NODE  = (1 << 1) | (1 << 16),
 
   DECLARATIONS_NODE     = (1 << 17),
-  DECLARATION_NODE      = (1 << 18)
+  DECLARATION_NODE      = (1 << 18),
+  DECLARATION_WITH_INIT_NODE = (1 << 19),
+  DECLARATION_CONST_NODE= (1 << 20)
 } node_kind;
 
 struct node_ {
 
   // an example of tagging each node with a type
   node_kind kind;
+  int line;
 
   union {
     struct {
@@ -63,6 +66,10 @@ struct node_ {
       node *declarations;
       node *declaration;
     } declarations;
+
+    struct {
+
+    }
 
     struct {
       char *name;
