@@ -191,6 +191,8 @@ void ast_print_node(node *n) {
 
   case STATEMENTS_NODE:
     break;
+
+  case DECLARATION_NODE:
   
   case BINARY_EXPRESSION_NODE:
     printf("%c", n->binary_expr.op);
@@ -251,6 +253,19 @@ node *ast_get_child(node *n, int child_index) {
     }
     break;
   }
+
+  case DECLARATION_NODE:
+    break;
+
+  case ASSIGNMENT_NODE:
+  {
+    if (child_index == 0) {
+      return n->assignment_stmt.left;
+    } else if (child_index == 1) {
+      return n->assignment_stmt.right;
+    }
+    break;
+  }
   
   case BINARY_EXPRESSION_NODE:
   {
@@ -266,13 +281,9 @@ node *ast_get_child(node *n, int child_index) {
   case VAR_NODE:
     break;
 
-  case ASSIGNMENT_NODE:
+  case ARGUMENTS_NODE:
   {
-    if (child_index == 0) {
-      return n->assignment_stmt.left;
-    } else if (child_index == 1) {
-      return n->assignment_stmt.right;
-    }
+    // TODO
     break;
   }
 
