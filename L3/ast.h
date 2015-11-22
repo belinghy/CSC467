@@ -158,7 +158,7 @@ struct node_ {
 node *ast_allocate(node_kind type, ...);
 void ast_free(node *ast);
 void ast_print(node * ast);
-char *get_type(Type *type);
+void get_type(Type *type, char *buf);
 char *get_operator(int op);
 char *get_function(int id);
 

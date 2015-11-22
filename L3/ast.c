@@ -341,17 +341,23 @@ void ast_print_recurse(node *n, int indent, int level) {
   case DECLARATION_NODE:
   {
     PRINT_INDENT(indent);
+    char buf[20];
+    get_type(n->declaration.type_info, buf);
     printf("(DECLARATION %s %s)\n",
               n->declaration.id,
-              get_type(n->declaration.type_info));
+              buf);
+    // free(buf);
     break;
   }
   
   case DECLARATION_WITH_INIT_NODE:
   {
     PRINT_INDENT(indent); printf("(DECLARATION ");
+    char buf[20];
+    get_type(n->declaration_init.type_info, buf);
     printf("%s %s ", n->declaration_const.id,
-                    get_type(n->declaration_init.type_info));
+                    buf);
+    // free(buf);
     ast_print_recurse(n->declaration_const.expression, indent, level);
     printf(")\n");
     break;
@@ -360,8 +366,11 @@ void ast_print_recurse(node *n, int indent, int level) {
   case DECLARATION_CONST_NODE: /* No need to print const */
   {
     PRINT_INDENT(indent); printf("(DECLARATION ");
+    char buf[20];
+    get_type(n->declaration_init.type_info, buf);
     printf("%s %s ", n->declaration_init.id,
-                    get_type(n->declaration_init.type_info));
+                    buf);
+    // free(buf);
     ast_print_recurse(n->declaration_init.expression, indent, level);
     printf(")\n");
     break;
@@ -404,7 +413,10 @@ void ast_print_recurse(node *n, int indent, int level) {
   case CONSTRUCTOR_NODE:
   {
     printf("(CALL ");
-    printf("%s",get_type(n->declaration.type_info));
+    char buf[20];
+    get_type(n->declaration.type_info, buf);
+    printf("%s", buf);
+    // free(buf);
     ast_print_recurse(n->constructor.arguments, indent, level);
     printf(")");
     break;
@@ -466,10 +478,13 @@ void ast_print_recurse(node *n, int indent, int level) {
     if ((n->variable.type_info)->length == 1) {
       printf("%s", n->variable.identifier);
     } else {
+      char buf[20];
+      get_type(n->variable.type_info, buf);
       printf("(INDEX %s %s %d)",
-                get_type(n->variable.type_info),
+                buf,
                 n->variable.identifier,
                 n->variable.index);
+      // free(buf);
     }
     // n->variable.type_info = va_arg(args, Type *);
     break;
@@ -500,40 +515,44 @@ char *get_function(int id){ //TODO: get enums declared here?
   }
 }
 
-char *get_type(Type *type) {
+void get_type(Type *type, char *buf) {
   if (type->length == 1) {
     switch (type->basic_type) {
       case Type::INT:
-        return "int";
+        sprintf(buf, "%s", "int");
+        // return "int";
         break;
       case Type::FLOAT:
-        if (type->length == 1) {}
-        return "float";
+        sprintf(buf, "%s", "float");
+        // return "float";
         break;
       case Type::BOOLEAN:
-        return "bool";
+        sprintf(buf, "%s", "bool");
+        // return "bool";
         break;
       default:
-        return "ANY-TYPE";
+        sprintf(buf, "%s", "ANY-TYPE");
+        // return "ANY-TYPE";
         break;
     }
   } else {
     switch (type->basic_type) {
-      char tmpstr[6];
+      //char tmpstr[6];
       case Type::INT:
-        sprintf(tmpstr, "ivec%d", type->length);
-        return tmpstr;
+        sprintf(buf, "ivec%d", type->length);
+        // return tmpstr;
         break;
       case Type::FLOAT:
-        sprintf(tmpstr, "vec%d", type->length);
-        return tmpstr;
+        sprintf(buf, "vec%d", type->length);
+        // return tmpstr;
         break;
       case Type::BOOLEAN:
-        sprintf(tmpstr, "bvec%d", type->length);
-        return tmpstr;
+        sprintf(buf, "bvec%d", type->length);
+        // return tmpstr;
         break;
       default:
-        return "ANY-TYPE-VECTOR";
+        sprintf(buf, "%s", "ANY-TYPE-VECTOR");
+        // return "ANY-TYPE-VECTOR";
         break;
     }
   }
