@@ -25,8 +25,6 @@ struct node_;
 typedef struct node_ node;
 extern node *ast;
 
-
-
 typedef enum {
     SCOPE_NODE,
 
