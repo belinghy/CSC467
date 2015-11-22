@@ -8,16 +8,11 @@
 
 #include "common.h"
 
+//TODO: move functions to symbol.c
 class SymAttr{
 public:
   char *name;
   Type *type;
-  SymAttr();
-
-  SymAttr(char *name_, Type *type_){
-    name = name_;
-    type = type_;
-  }
 };
 
 class SymbolTable{
@@ -42,8 +37,9 @@ public:
     if(exists(name)){
       return 1;
     } else {
-      SymAttr attr(name, type);
-      htmap[name] = attr;
+      htmap[name] = SymAttr();
+      htmap[name].name = name;
+      htmap[name].type = type;
       return 0;
     }
   }
