@@ -253,14 +253,16 @@ void ast_print_recurse(node *n, int indent, int level) {
     break;
   }
 
-  /*
   case FUNCTION_NODE:
   {
-    n->function.func_id = va_arg(args, int);
-    n->function.arguments = va_arg(args, node *);
+    printf("(CALL ");
+    printf("%s",get_function(n->function.func_id));
+    ast_print_recurse(n->function.arguments, indent, level);
+    printf(")");
     break;
   }
 
+  /*
   case UNARY_EXPRESSION_NODE:
   {
     n->unary_expr.op = va_arg(args, int);
@@ -317,6 +319,17 @@ void ast_print_recurse(node *n, int indent, int level) {
   }
 
   default: break;
+  }
+}
+
+char *get_function(int id){ //TODO: get enums declared here?
+  switch(id){
+    case 0:
+      return "dp3"; 
+    case 1:
+      return "lit"; 
+    case 2:
+      return "rsq";
   }
 }
 

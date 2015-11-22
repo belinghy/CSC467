@@ -168,5 +168,6 @@ void ast_free(node *ast);
 void ast_print(node * ast);
 char *get_type(Type *type);
 char *get_operator(int op);
+char *get_function(int id);
 
 #endif /* AST_H_ */
