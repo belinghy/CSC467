@@ -1,5 +1,5 @@
 {
-  /*int x;
+  int x;
   int y;
   int z = 3 * 12 + 4;
   const bool w = !(1 > (12 + 2));
@@ -7,13 +7,14 @@
 
   x = (1 + 2) * 5;
   y = 5;
-  x = x + y;*/
+  x = x + y;
 
   if(w){
     z = 13 + 12;
     x = z + 11;
   } else {
     y = 44 - 2;
+    x = x + 1;
   }
 
   {

@@ -168,8 +168,8 @@ void ast_print_recurse(node *n, int indent, int level) {
   
   case SCOPE_NODE:
     PRINT_INDENT(indent); printf("(SCOPE \n");
-    ast_print_recurse(n->scope.declarations, indent + 1, level);
-    ast_print_recurse(n->scope.statements, indent + 1, level);
+    ast_print_recurse(n->scope.declarations, indent + 1, 0);
+    ast_print_recurse(n->scope.statements, indent + 1, 0);
     PRINT_INDENT(indent); printf("END_SCOPE)\n");
     break;
 
@@ -209,6 +209,15 @@ void ast_print_recurse(node *n, int indent, int level) {
   }
   
   case DECLARATION_WITH_INIT_NODE:
+  {
+    PRINT_INDENT(indent); printf("(DECLARATION ");
+    printf("%s %s ", n->declaration_const.id,
+                    get_type(n->declaration_init.type_info));
+    ast_print_recurse(n->declaration_const.expression, indent, level);
+    printf(")\n");
+    break;
+  }
+
   case DECLARATION_CONST_NODE: /* No need to print const */
   {
     PRINT_INDENT(indent); printf("(DECLARATION ");
@@ -230,7 +239,6 @@ void ast_print_recurse(node *n, int indent, int level) {
   }
 
   case IF_WITH_ELSE_STATEMENT_NODE:
-  case IF_STATEMENT_NODE:
   {
     PRINT_INDENT(indent); printf("(IF ");
     ast_print_recurse(n->if_else_stmt.expression, indent, level);
@@ -240,6 +248,16 @@ void ast_print_recurse(node *n, int indent, int level) {
         printf("\n"); PRINT_INDENT(indent); printf(" ELSE\n");
         ast_print_recurse(n->if_else_stmt.else_stmt, indent + 1, level);
     }
+    PRINT_INDENT(indent); printf(" END_IF)\n");
+    break;
+  }
+
+  case IF_STATEMENT_NODE:
+  {
+    PRINT_INDENT(indent); printf("(IF ");
+    ast_print_recurse(n->if_stmt.expression, indent, level);
+    printf("\n");
+    ast_print_recurse(n->if_stmt.then_stmt, indent + 1, level);
     PRINT_INDENT(indent); printf(" END_IF)\n");
     break;
   }
