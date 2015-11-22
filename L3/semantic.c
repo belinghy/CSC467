@@ -194,14 +194,22 @@ int semantic_check_recurse(node *n, SymbolTable *s){
     //FLOAT_NODE,
     case VAR_NODE:
     {
-      //TODO: check is declared, get type from symbol table, check index not out of bounds
+      /* Checking variable was declared */
       SymAttr *attr = s->lookup(n->variable.identifier);
       if(attr == NULL){
-        printf("ERROR: line %d: undeclared variable %s\n", n->line, n->variable.identifier);
-        return 0;
+        fprintf(errorFile, "ERROR: line %d: undeclared variable %s\n", n->line, n->variable.identifier);
+        errorOccurred = 1;
+        break;
       } 
 
-      printf("Got symbol %s \n", attr->name);
+      /* Getting type from declared variable */
+      n->variable.type_info = attr->type;
+
+      /* Checking index is not out of bounds */
+      if((n->variable.type_info)->length <= n->variable.index){
+        fprintf(errorFile, "ERROR: line%d, index %d is out of bounds for variable %s of length %d\n", n->line, n->variable.index, n->variable.identifier, (n->variable.type_info)->length);
+        errorOccurred = 1;
+      }
       break;
     }
     case ARGUMENTS_NODE:
