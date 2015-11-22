@@ -164,15 +164,6 @@ void ast_print(node *ast) {
 void ast_print_recurse(node *n, int indent, int level) {
   if (n == NULL) return;
 
-  /*
-  for (int i=0; i<indent; i++) {
-    printf("    ");
-    //printf("t%d", n->kind);
-    //printf("i%d", indent);
-    //printf("l%d", level);
-  }
-  */
-
   switch(n->kind) {
   
   case SCOPE_NODE:
@@ -253,14 +244,16 @@ void ast_print_recurse(node *n, int indent, int level) {
     break;
   }
 
-  /*
   case CONSTRUCTOR_NODE:
   {
-    n->constructor.type_info = va_arg(args, Type *);
-    n->constructor.arguments = va_arg(args, node *);
+    printf("(CALL ");
+    printf("%s",get_type(n->declaration.type_info));
+    ast_print_recurse(n->constructor.arguments, indent, level);
+    printf(")");
     break;
   }
 
+  /*
   case FUNCTION_NODE:
   {
     n->function.func_id = va_arg(args, int);
@@ -315,14 +308,13 @@ void ast_print_recurse(node *n, int indent, int level) {
     break;
   }
 
-  /*
   case ARGUMENTS_NODE:
   {
-    n->arguments.arguments = va_arg(args, node *);
-    n->arguments.argument = va_arg(args, node *);
+    ast_print_recurse(n->arguments.arguments, indent, level);
+    printf(" ");
+    ast_print_recurse(n->arguments.argument, indent, level);
     break;
   }
-  */
 
   default: break;
   }
