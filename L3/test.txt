@@ -35,7 +35,7 @@
 
   q = dp3(3, 6 / 44, 8);*/
 
-  int x;
+  /*int x;
   ivec3 z;
   {
   int y;
@@ -44,5 +44,11 @@
   z[2] = 1;
   z[3] = 0;
   }
-  y = 34;
+  y = 34;*/
+
+  /* Binary op tests */
+  bool w;
+  int q;
+  bool z;
+  z = w || q;
 }

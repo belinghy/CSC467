@@ -57,9 +57,6 @@ struct node_ {
   int line;
   Type *type_info;
 
-//TEMP
-  Type *type_info;
-
   union {
     struct {
       node *declarations;
