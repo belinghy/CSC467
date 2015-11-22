@@ -47,8 +47,8 @@
   y = 34;*/
 
   /* Binary op tests */
-  bool w;
+  ivec2 w;
   int q;
   bool z;
-  z = w || q;
+  z = w > q;
 }

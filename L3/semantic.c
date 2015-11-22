@@ -8,7 +8,7 @@
 bool type_check(Type *info1, Type *info2);
 int semantic_check_recurse(node *n, SymbolTable *prev_sym);
 void binary_check_type(Type *type_out, int line, int op, Type *type1, Type *type2);
-void setType(Type *src, Type *dst);
+void set_type(Type *src, Type *dst);
 
 int semantic_check( node *ast) {
 
@@ -229,9 +229,9 @@ int semantic_check_recurse(node *n, SymbolTable *s){
       } 
 
       /* Getting type from declared variable */
-      setType(attr->type, n->type_info);
-      char buf[10];
-      get_type(n->type_info, buf);
+      set_type(attr->type, n->type_info);
+      //char buf[10];
+      //get_type(n->type_info, buf);
       //printf("HELLOO set var %s to type %s \n", n->variable.identifier, buf);
 
       /* Checking index is not out of bounds */
@@ -262,10 +262,18 @@ bool type_check(Type *info1, Type *info2) {
   }
 }
 
-void setType(Type *src, Type *dst){
+void set_type(Type *src, Type *dst){
     dst->length = src->length;
     dst->basic_type = src->basic_type;
     dst->is_const = src->is_const;
+}
+
+bool is_arithmetic(Type *type){
+  return(type->basic_type == Type::INT || type->basic_type == Type::FLOAT);
+}
+
+bool is_scalar(Type *type){
+  return(type->length == 1);
 }
 
 void binary_check_type(Type *type_out, int line, int op, Type *type1, Type *type2) {
@@ -295,14 +303,34 @@ void binary_check_type(Type *type_out, int line, int op, Type *type1, Type *type
         return;
       }
 
-      setType(type1, type_out);
+      set_type(type1, type_out);
       break;
     case EQ:
     case NEQ:
+      break;
     case '>':
     case '<':
     case LEQ:
     case GEQ:
+      if(!is_arithmetic(type1)){
+        fprintf(errorFile, "ERROR: line %d, argument 1 of %s operator does not have arithmetic type\n", line, get_operator(op));
+        errorOccurred = 1;
+        return;
+      } 
+      if (!is_arithmetic(type2)){
+        fprintf(errorFile, "ERROR: line %d, argument 2 of %s operator does not have arithmetic type\n", line, get_operator(op));
+        errorOccurred = 1;
+        return;
+      } 
+
+      if (!is_scalar(type1) || !is_scalar(type2)){
+        fprintf(errorFile, "ERROR: line %d, arguments of %s operator must be scalar\n", line, get_operator(op));
+        errorOccurred = 1;
+        return;
+      }
+      type_out->length = 1;
+      type_out->basic_type = Type::BOOLEAN;
+      break;
     case '+':
     case '-':
     case '*':
