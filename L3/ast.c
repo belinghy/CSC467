@@ -24,6 +24,12 @@ node *ast_allocate(node_kind kind, ...) {
   memset(ast, 0, sizeof *ast);
   ast->kind = kind;
 
+  Type *type = (Type *) malloc(sizeof(Type));
+  type->length = -1;
+  type->basic_type = Type::ANY;
+  type->is_const = false;
+  ast->type_info = type;
+
   va_start(args, kind); 
 
   switch(kind) {
@@ -49,14 +55,14 @@ node *ast_allocate(node_kind kind, ...) {
 
   case DECLARATION_NODE:
   {
-    ast->declaration.type_info = va_arg(args, Type *);
+    ast->type_info = va_arg(args, Type *);
     ast->declaration.id = va_arg(args, char *);
     break;
   }
 
   case DECLARATION_WITH_INIT_NODE:
   {
-    ast->declaration_init.type_info = va_arg(args, Type *);
+    ast->type_info = va_arg(args, Type *);
     ast->declaration_init.id = va_arg(args, char *);
     ast->declaration_init.expression = va_arg(args, node *);
     break;
@@ -66,7 +72,7 @@ node *ast_allocate(node_kind kind, ...) {
   {
     Type *type_info = va_arg(args, Type *);
     type_info->is_const = true;
-    ast->declaration_const.type_info = type_info;
+    ast->type_info = type_info;
     ast->declaration_const.id = va_arg(args, char *);
     ast->declaration_const.expression = va_arg(args, node *);
     break;
@@ -95,7 +101,7 @@ node *ast_allocate(node_kind kind, ...) {
 
   case CONSTRUCTOR_NODE:
   {
-    ast->constructor.type_info = va_arg(args, Type *);
+    ast->type_info = va_arg(args, Type *);
     ast->constructor.arguments = va_arg(args, node *);
     break;
   }
@@ -108,7 +114,7 @@ node *ast_allocate(node_kind kind, ...) {
     type->length = -1;
     type->basic_type = Type::ANY;
     type->is_const = false;
-    ast->function.type_info = type;
+    ast->type_info = type;
     break;
   }
 
@@ -120,7 +126,7 @@ node *ast_allocate(node_kind kind, ...) {
     type->length = -1;
     type->basic_type = Type::ANY;
     type->is_const = false;
-    ast->unary_expr.type_info = type;
+    ast->type_info = type;
     break;
   }
 
@@ -133,7 +139,7 @@ node *ast_allocate(node_kind kind, ...) {
     type->length = -1;
     type->basic_type = Type::ANY;
     type->is_const = false;
-    ast->binary_expr.type_info = type;
+    ast->type_info = type;
     break;
   }
 
@@ -144,7 +150,7 @@ node *ast_allocate(node_kind kind, ...) {
     type->length = 1;
     type->basic_type = Type::BOOLEAN;
     type->is_const = false;
-    ast->bool_literal.type_info = type;
+    ast->type_info = type;
     break;
   }
 
@@ -155,7 +161,7 @@ node *ast_allocate(node_kind kind, ...) {
     type->length = 1;
     type->basic_type = Type::INT;
     type->is_const = false;
-    ast->int_literal.type_info = type;
+    ast->type_info = type;
     break;
   }
 
@@ -166,13 +172,13 @@ node *ast_allocate(node_kind kind, ...) {
     type->length = 1;
     type->basic_type = Type::FLOAT;
     type->is_const = false;
-    ast->float_literal.type_info = type;
+    ast->type_info = type;
     break;
   }
 
   case VAR_NODE:
     ast->variable.identifier = va_arg(args, char *);
-    ast->variable.type_info = va_arg(args, Type *);
+    ast->type_info = va_arg(args, Type *);
     ast->variable.index = va_arg(args, int);
     break;
 
@@ -184,7 +190,7 @@ node *ast_allocate(node_kind kind, ...) {
     type->length = -1;
     type->basic_type = Type::ANY;
     type->is_const = false;
-    ast->arguments.type_info = type;
+    ast->type_info = type;
     ast->arguments.num_args = -1;
     break;
   }
@@ -234,7 +240,7 @@ void ast_free(node *ast) {
 
   case DECLARATION_NODE:
   {
-    free(ast->declaration.type_info); ast->declaration.type_info = NULL;
+    // free(ast->declaration.type_info); ast->declaration.type_info = NULL;
     free(ast->declaration.id);
     break;
   }
@@ -242,7 +248,7 @@ void ast_free(node *ast) {
   case DECLARATION_WITH_INIT_NODE:
   {
     ast_free(ast->declaration_init.expression);
-    free(ast->declaration_init.type_info); ast->declaration_init.type_info = NULL;
+    // free(ast->declaration_init.type_info); ast->declaration_init.type_info = NULL;
     free(ast->declaration_init.id);
     break;
   }
@@ -250,7 +256,7 @@ void ast_free(node *ast) {
   case DECLARATION_CONST_NODE:
   {
     ast_free(ast->declaration_const.expression);
-    free(ast->declaration_const.type_info); ast->declaration_const.type_info = NULL;
+    // free(ast->declaration_const.type_info); ast->declaration_const.type_info = NULL;
     free(ast->declaration_const.id); // = va_arg(args, char *);
     break;
   }
@@ -281,7 +287,7 @@ void ast_free(node *ast) {
   case CONSTRUCTOR_NODE:
   {
     ast_free(ast->constructor.arguments);
-    free(ast->constructor.type_info); ast->constructor.type_info = NULL;
+    // free(ast->constructor.type_info); ast->constructor.type_info = NULL;
     break;
   }
 
@@ -289,7 +295,7 @@ void ast_free(node *ast) {
   {
     // ast->function.func_id = va_arg(args, int);
     ast_free(ast->function.arguments);
-    free(ast->function.type_info); ast->function.type_info = NULL;
+    // free(ast->function.type_info); ast->function.type_info = NULL;
     break;
   }
 
@@ -297,7 +303,7 @@ void ast_free(node *ast) {
   {
     // ast->unary_expr.op = va_arg(args, int);
     ast_free(ast->unary_expr.right);
-    free(ast->unary_expr.type_info); ast->unary_expr.type_info = NULL;
+    // free(ast->unary_expr.type_info); ast->unary_expr.type_info = NULL;
     break;
   }
 
@@ -306,29 +312,29 @@ void ast_free(node *ast) {
     // ast->binary_expr.op = va_arg(args, int);
     ast_free(ast->binary_expr.left);
     ast_free(ast->binary_expr.right);
-    free(ast->binary_expr.type_info); ast->binary_expr.type_info = NULL;
+    // free(ast->binary_expr.type_info); ast->binary_expr.type_info = NULL;
     break;
   }
 
   case BOOL_NODE:
     // ast->bool_literal.value = (va_arg(args, int) == 1) ? true : false;
-    free(ast->bool_literal.type_info); ast->bool_literal.type_info = NULL;
+    // free(ast->bool_literal.type_info); ast->bool_literal.type_info = NULL;
     break;
 
   case INT_NODE:
     // ast->int_literal.value = va_arg(args, int);
-    free(ast->int_literal.type_info); ast->int_literal.type_info = NULL;
+    // free(ast->int_literal.type_info); ast->int_literal.type_info = NULL;
     break;
 
   case FLOAT_NODE:
     // ast->float_literal.value = (float) va_arg(args, double);
-    free(ast->float_literal.type_info); ast->float_literal.type_info = NULL;
+    // free(ast->float_literal.type_info); ast->float_literal.type_info = NULL;
     break;
 
   case VAR_NODE:
   {  
     free(ast->variable.identifier);// = va_arg(args, char *);
-    free(ast->variable.type_info); ast->variable.type_info = NULL;
+    // free(ast->variable.type_info); ast->variable.type_info = NULL;
     // ast->variable.index = va_arg(args, int);
     break;
   }
@@ -337,13 +343,14 @@ void ast_free(node *ast) {
   {
     ast_free(ast->arguments.arguments);
     ast_free(ast->arguments.argument);
-    free(ast->arguments.type_info); ast->arguments.type_info = NULL;
+    // free(ast->arguments.type_info); ast->arguments.type_info = NULL;
     break;
   }
 
   default: break;
   }
 
+  free(ast->type_info); ast->type_info = NULL;
   free(ast); ast = NULL;
 }
 
@@ -393,7 +400,7 @@ void ast_print_recurse(node *n, int indent, int level) {
   {
     PRINT_INDENT(indent);
     char buf[20];
-    get_type(n->declaration.type_info, buf);
+    get_type(n->type_info, buf);
     printf("(DECLARATION %s %s)\n",
               n->declaration.id,
               buf);
@@ -405,7 +412,7 @@ void ast_print_recurse(node *n, int indent, int level) {
   {
     PRINT_INDENT(indent); printf("(DECLARATION ");
     char buf[20];
-    get_type(n->declaration_init.type_info, buf);
+    get_type(n->type_info, buf);
     printf("%s %s ", n->declaration_const.id,
                     buf);
     // free(buf);
@@ -418,7 +425,7 @@ void ast_print_recurse(node *n, int indent, int level) {
   {
     PRINT_INDENT(indent); printf("(DECLARATION ");
     char buf[20];
-    get_type(n->declaration_init.type_info, buf);
+    get_type(n->type_info, buf);
     printf("%s %s ", n->declaration_init.id,
                     buf);
     // free(buf);
@@ -465,7 +472,7 @@ void ast_print_recurse(node *n, int indent, int level) {
   {
     printf("(CALL ");
     char buf[20];
-    get_type(n->declaration.type_info, buf);
+    get_type(n->type_info, buf);
     printf("%s", buf);
     // free(buf);
     ast_print_recurse(n->constructor.arguments, indent, level);
@@ -526,11 +533,11 @@ void ast_print_recurse(node *n, int indent, int level) {
 
   case VAR_NODE:
   {
-    if ((n->variable.type_info)->length == 1) {
+    if ((n->type_info)->length == 1) {
       printf("%s", n->variable.identifier);
     } else {
       char buf[20];
-      get_type(n->variable.type_info, buf);
+      get_type(n->type_info, buf);
       printf("(INDEX %s %s %d)",
                 buf,
                 n->variable.identifier,

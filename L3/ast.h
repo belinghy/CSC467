@@ -55,6 +55,7 @@ struct node_ {
   // an example of tagging each node with a type
   node_kind kind;
   int line;
+  Type *type_info;
 
   union {
     struct {
@@ -74,20 +75,20 @@ struct node_ {
     } statements;
 
     struct {
-      Type *type_info;
+      // Type *type_info;
       char *id;
     } declaration;
 
     struct {
       char *id;
       node *expression;
-      Type *type_info;
+      // Type *type_info;
     } declaration_init;
 
     struct {
       char *id;
       node *expression;
-      Type *type_info;
+      // Type *type_info;
     } declaration_const;
 
     struct {
@@ -108,54 +109,54 @@ struct node_ {
     } if_stmt;
 
     struct {
-      Type *type_info;
+      // Type *type_info;
       node *arguments;    
     } constructor;
 
     struct {
       int func_id;
       node *arguments;
-      Type *type_info;
+      // Type *type_info;
     } function;
 
     struct {
       int op;
       node *right;
-      Type *type_info;
+      // Type *type_info;
     } unary_expr;
 
     struct {
       int op;
       node *left;
       node *right;
-      Type *type_info;
+      // Type *type_info;
     } binary_expr;
 
     struct {
       int value;
-      Type *type_info;
+      // Type *type_info;
     } int_literal;
 
     struct {
       float value;
-      Type *type_info;
+      // Type *type_info;
     } float_literal;
 
     struct {
       bool value;
-      Type *type_info;
+      // Type *type_info;
     } bool_literal;
 
     struct {
       char *identifier;
-      Type *type_info;
+      // Type *type_info;
       int index;
     } variable;
 
     struct {
       node *arguments;
       node *argument;
-      Type *type_info;
+      // Type *type_info;
       int num_args;
     } arguments;
   };

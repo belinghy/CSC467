@@ -4,6 +4,7 @@
 
 #include "semantic.h"
 
+bool type_check(Type *info1, Type *info2);
 int semantic_check_recurse(node *n, SymbolTable *prev_sym);
 
 int semantic_check( node *ast) {
@@ -137,21 +138,27 @@ int semantic_check_recurse(node *n, SymbolTable *s){
 
     case DECLARATION_NODE:
       /* Enter variable into symbol table */
-      if((s->put(n->declaration.id, n->declaration.type_info)) == 1){
-          fprintf(errorFile, "ERROR: line %d: redeclaration of variable %s\n", n->line, n->declaration.id);
-          errorOccurred = true;
+      if((s->put(n->declaration.id, n->type_info)) == 1){
+        fprintf(errorFile, "ERROR: line %d: redeclaration of variable %s\n", n->line, n->declaration.id);
+        errorOccurred = true;
       }
       break;
 
     case DECLARATION_WITH_INIT_NODE:
     {
       //TODO: check type
-      if((s->put(n->declaration_init.id, n->declaration_init.type_info)) == 1){
-          fprintf(errorFile, "ERROR: line %d: redeclaration of variable %s\n", n->line, n->declaration_init.id);
-          errorOccurred = true;
+      if((s->put(n->declaration_init.id, n->type_info)) == 1){
+        fprintf(errorFile, "ERROR: line %d: redeclaration of variable %s\n", n->line, n->declaration_init.id);
+        errorOccurred = true;
+      }
+
+      if (type_check(n->type_info, (n->declaration_init.expression)->type_info)) {
+        fprintf(errorFile, "ERROR: line %d: type mismatch in declaration of variable %s\n", n->line, n->declaration_init.id);
+        errorOccurred = true;
       }
       break;
     }
+
     case DECLARATION_CONST_NODE:
     {
       //TODO: check type, check const, add to symbol table
@@ -208,11 +215,11 @@ int semantic_check_recurse(node *n, SymbolTable *s){
       } 
 
       /* Getting type from declared variable */
-      n->variable.type_info = attr->type;
+      n->type_info = attr->type;
 
       /* Checking index is not out of bounds */
-      if((n->variable.type_info)->length <= n->variable.index){
-        fprintf(errorFile, "ERROR: line%d, index %d is out of bounds for variable %s of length %d\n", n->line, n->variable.index, n->variable.identifier, (n->variable.type_info)->length);
+      if((n->type_info)->length <= n->variable.index){
+        fprintf(errorFile, "ERROR: line %d: index %d is out of bounds for variable %s of length %d\n", n->line, n->variable.index, n->variable.identifier, (n->type_info)->length);
         errorOccurred = 1;
       }
       break;
@@ -227,4 +234,13 @@ int semantic_check_recurse(node *n, SymbolTable *s){
     }
 
     return 0;
+}
+
+bool type_check(Type *info1, Type *info2) {
+  // return true if error, false if no error
+  if (info1->basic_type == info2->basic_type && info1->length == info2->length) {
+    return false;
+  } else {
+    return true;
+  }
 }
