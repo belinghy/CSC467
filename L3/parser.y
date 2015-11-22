@@ -116,7 +116,7 @@ enum {
 %type <as_type> type
 %type <as_ast> arguments_opt;
 %type <as_ast> arguments;
-%type <as_ast> FUNC;
+%type <as_func> FUNC;
 
 // expect one shift/reduce conflict, where Bison chooses to shift
 // the ELSE.
@@ -146,7 +146,7 @@ scope
       {
         // ast->scope
         yTRACE("scope -> { declarations statements }\n") 
-        $$ = ast_allocate(SCOPE_NODE, "scope", $2, $3, yyline);
+        $$ = ast_allocate(SCOPE_NODE, $2, $3, yyline);
       }
   ;
 
@@ -155,13 +155,13 @@ declarations
       {
         // ast->declarations
         yTRACE("declarations -> declarations declaration\n");
-        $$ = ast_allocate(DECLARATIONS_NODE, "declarations", $1, $2, yyline);
+        $$ = ast_allocate(DECLARATIONS_NODE, $1, $2, yyline);
       }
   | 
       {
         // ast->declarations
         yTRACE("declarations -> \n");
-        $$ = ast_allocate(DECLARATIONS_NODE, "declarations", NULL, yyline);
+        $$ = ast_allocate(DECLARATIONS_NODE, NULL, yyline);
       }
   ;
 
@@ -170,13 +170,13 @@ statements
       {
         // ast->statements
         yTRACE("statements -> statements statement\n");
-        $$ = ast_allocate(STATEMENTS_NODE, "statements", $1, $2, yyline);
+        $$ = ast_allocate(STATEMENTS_NODE, $1, $2, yyline);
       }
   | 
       {
         // ast->statements
         yTRACE("statements -> \n")
-        $$ = ast_allocate(STATEMENTS_NODE, "statements", NULL, yyline);
+        $$ = ast_allocate(STATEMENTS_NODE, NULL, yyline);
       }
   ;
 
@@ -445,7 +445,8 @@ arguments_opt
       }
   |
       { 
-        yTRACE("arguments_opt -> \n") 
+        yTRACE("arguments_opt -> \n")
+        $$ = NULL;
       }
   ;
 
