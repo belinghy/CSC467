@@ -262,14 +262,14 @@ void ast_print_recurse(node *n, int indent, int level) {
     break;
   }
 
-  /*
   case UNARY_EXPRESSION_NODE:
   {
-    n->unary_expr.op = va_arg(args, int);
-    n->unary_expr.right = va_arg(args, node *);
+    printf("(UNARY ");
+    printf("%s ", get_operator(n->unary_expr.op)); //TODO: type
+    ast_print_recurse(n->unary_expr.right, indent, level);
+    printf(")");
     break;
   }
-  */
 
   case BINARY_EXPRESSION_NODE:
   {
@@ -330,6 +330,8 @@ char *get_function(int id){ //TODO: get enums declared here?
       return "lit"; 
     case 2:
       return "rsq";
+    default:
+      return "UNKNOWN-FUNC";
   }
 }
 

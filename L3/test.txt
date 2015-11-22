@@ -2,7 +2,7 @@
   int x;
   int y;
   int z = 3 * 12 + 4;
-  const bool w = (1 > (12 + 2));
+  const bool w = !(1 > (12 + 2));
   ivec3 q = ivec3(2, 4 * 12, 5 + 1);
 
   x = (1 + 2) * 5;
