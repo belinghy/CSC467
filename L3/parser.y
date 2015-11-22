@@ -224,7 +224,7 @@ statement
       {
         // ast->scope
         yTRACE("statement -> scope \n")
-        $$ = ast_allocate(SCOPE_NODE, $1);
+        $$ = $1;
       }
   | ';'
       {
