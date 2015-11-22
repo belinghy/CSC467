@@ -79,11 +79,6 @@ node *ast_allocate(node_kind kind, ...) {
     ast->var_expr.identifier = va_arg(args, char*);
     break;
 
-  case ARRAY_NODE:
-    ast->array_expr.identifier = va_arg(args, char*);
-    ast->array_expr.length = va_arg(args, int);    
-    break;
-
   case ASSIGNMENT_NODE:
     ast->assignment_stmt.op = va_arg(args, int);
     ast->assignment_stmt.left = va_arg(args, node *);

@@ -20,7 +20,6 @@
 
 #include "common.h"
 #include "ast.h"
-#include "type.h"
 #include "symbol.h"
 #include "semantic.h"
 
@@ -62,11 +61,13 @@ enum {
 // defines the yyval union
 %union {
   int as_int;
+  bool as_bool;
   int as_vec;
   float as_float;
   char *as_str;
   int as_func;
   node *as_ast;
+  Type *as_type;
 }
 
 %token          FLOAT_T
@@ -85,6 +86,8 @@ enum {
 %token <as_float> FLOAT_C
 %token <as_int>   INT_C
 %token <as_str>   ID
+%token <as_bool>  TRUE_C
+%token <as_bool>  FALSE_C
 
 // operator precdence
 %left     OR                        // 7
@@ -110,7 +113,10 @@ enum {
 %type <as_ast> declarations
 %type <as_ast> program
 %type <as_ast> scope
-
+%type <as_type> type
+%type <as_ast> arguments_opt;
+%type <as_ast> arguments;
+%type <as_ast> FUNC;
 
 // expect one shift/reduce conflict, where Bison chooses to shift
 // the ELSE.
@@ -179,8 +185,7 @@ declaration
       {
         // ast->
         yTRACE("declaration -> type ID ;\n")
-        $1.length = 1;
-        $$ = ast_allocate(DECLARATION, $1, $2, yyline);
+        $$ = ast_allocate(DECLARATION_NODE, $1, $2, yyline);
       }
   | type ID '=' expression ';'
       {
@@ -192,7 +197,7 @@ declaration
       {
         // ast->
         yTRACE("declaration -> CONST type ID = expression ;\n")
-        $$ = ast_allocate(DECLARATION_CONST_NODE, $1, $2, $4, yyline);
+        $$ = ast_allocate(DECLARATION_CONST_NODE, $2, $3, $5, yyline);
       }
   ;
 
@@ -233,112 +238,214 @@ type
       {
         // ast->
         yTRACE("type -> INT_T \n")
-        Type int_type;
-        int_type.type = INT:
-        $$ = int_type;
+        Type *type = (Type *) malloc(sizeof(Type));
+        type->basic_type = Type::INT;
+        $$ = type;
       }
   | IVEC_T
-      { yTRACE("type -> IVEC_T \n") }
+      { 
+        yTRACE("type -> IVEC_T \n")
+        Type *type = (Type *) malloc(sizeof(Type));
+        type->basic_type = Type::INT;
+        $$ = type;
+      }
   | BOOL_T
-      { yTRACE("type -> BOOL_T \n") }
+      { 
+        yTRACE("type -> BOOL_T \n") 
+        Type *type = (Type *) malloc(sizeof(Type));
+        type->basic_type = Type::BOOLEAN;
+        $$ = type;
+      }
   | BVEC_T
-      { yTRACE("type -> BVEC_T \n") }
+      { 
+        yTRACE("type -> BVEC_T \n") 
+        Type *type = (Type *) malloc(sizeof(Type));
+        type->basic_type = Type::BOOLEAN;
+        $$ = type;
+      }
   | FLOAT_T
-      { yTRACE("type -> FLOAT_T \n") }
+      { 
+        yTRACE("type -> FLOAT_T \n") 
+        Type *type = (Type *) malloc(sizeof(Type));
+        type->basic_type = Type::FLOAT;
+        $$ = type;
+      }
   | VEC_T
-      { yTRACE("type -> VEC_T \n") }
+      { 
+        yTRACE("type -> VEC_T \n") 
+        Type *type = (Type *) malloc(sizeof(Type));
+        type->basic_type = Type::FLOAT;
+        $$ = type;
+      }
   ;
 
 expression
 
   /* function-like operators */
   : type '(' arguments_opt ')' %prec '('
-      { yTRACE("expression -> type ( arguments_opt ) \n") }
+      {
+        yTRACE("expression -> type ( arguments_opt ) \n")
+        $$ = ast_allocate(CONSTRUCTOR_NODE, $1, $3, yyline );
+      }
   | FUNC '(' arguments_opt ')' %prec '('
-      { yTRACE("expression -> FUNC ( arguments_opt ) \n") }
+      {
+        yTRACE("expression -> FUNC ( arguments_opt ) \n") 
+        $$ = ast_allocate(FUNCTION_NODE, $1, $3, yyline );
+      }
 
   /* unary opterators */
   | '-' expression %prec UMINUS
-      { yTRACE("expression -> - expression \n") }
+      {
+        yTRACE("expression -> - expression \n")
+        $$ = ast_allocate(UNARY_EXPRESION_NODE, '-', $2, yyline );
+      }
   | '!' expression %prec '!'
-      { yTRACE("expression -> ! expression \n") }
+      {
+        yTRACE("expression -> ! expression \n")
+        $$ = ast_allocate(UNARY_EXPRESION_NODE, '!', $2, yyline );
+      }
 
   /* binary operators */
   | expression AND expression %prec AND
-      { yTRACE("expression -> expression AND expression \n") }
+      { 
+        yTRACE("expression -> expression AND expression \n") 
+        $$ = ast_allocate(BINARY_EXPRESSION_NODE, AND, $1 , $3, yyline );
+      }
   | expression OR expression %prec OR
-      { yTRACE("expression -> expression OR expression \n") }
+      { 
+        yTRACE("expression -> expression OR expression \n") 
+        $$ = ast_allocate(BINARY_EXPRESSION_NODE, OR, $1 , $3, yyline );
+      }
   | expression EQ expression %prec EQ
-      { yTRACE("expression -> expression EQ expression \n") }
+      {
+        yTRACE("expression -> expression EQ expression \n")
+        $$ = ast_allocate(BINARY_EXPRESSION_NODE, EQ, $1 , $3, yyline );
+      }
   | expression NEQ expression %prec NEQ
-      { yTRACE("expression -> expression NEQ expression \n") }
+      {
+        yTRACE("expression -> expression NEQ expression \n")
+        $$ = ast_allocate(BINARY_EXPRESSION_NODE, NEQ, $1 , $3, yyline );
+      }
   | expression '<' expression %prec '<'
-      { yTRACE("expression -> expression < expression \n") }
+      {
+        yTRACE("expression -> expression < expression \n")
+        $$ = ast_allocate(BINARY_EXPRESSION_NODE, '<', $1 , $3, yyline );
+      }
   | expression LEQ expression %prec LEQ
-      { yTRACE("expression -> expression LEQ expression \n") }
+      {
+        yTRACE("expression -> expression LEQ expression \n")
+        $$ = ast_allocate(BINARY_EXPRESSION_NODE, LEQ, $1 , $3, yyline );
+      }
   | expression '>' expression %prec '>'
-      { yTRACE("expression -> expression > expression \n") }
+      {
+        yTRACE("expression -> expression > expression \n")
+        $$ = ast_allocate(BINARY_EXPRESSION_NODE, '>', $1 , $3, yyline );
+      }
   | expression GEQ expression %prec GEQ
-      { yTRACE("expression -> expression GEQ expression \n") }
+      {
+        yTRACE("expression -> expression GEQ expression \n")
+      }
   | expression '+' expression %prec '+'
       {
         yTRACE("expression -> expression + expression \n");
-        $$ = ast_allocate(BINARY_EXPRESSION_NODE, '+', $1 , $3 );
+        $$ = ast_allocate(BINARY_EXPRESSION_NODE, '+', $1 , $3, yyline );
       }
   | expression '-' expression %prec '-'
-      { yTRACE("expression -> expression - expression \n") }
+      {
+        yTRACE("expression -> expression - expression \n")
+        $$ = ast_allocate(BINARY_EXPRESSION_NODE, '-', $1 , $3, yyline );
+      }
   | expression '*' expression %prec '*'
-      { yTRACE("expression -> expression * expression \n") }
+      { 
+        yTRACE("expression -> expression * expression \n")
+        $$ = ast_allocate(BINARY_EXPRESSION_NODE, '*', $1 , $3, yyline );
+      }
   | expression '/' expression %prec '/'
-      { yTRACE("expression -> expression / expression \n") }
+      { 
+        yTRACE("expression -> expression / expression \n")
+        $$ = ast_allocate(BINARY_EXPRESSION_NODE, '/', $1 , $3, yyline );
+      }
   | expression '^' expression %prec '^'
-      { yTRACE("expression -> expression ^ expression \n") }
+      { 
+        yTRACE("expression -> expression ^ expression \n") 
+        $$ = ast_allocate(BINARY_EXPRESSION_NODE, '^', $1 , $3, yyline );
+      }
 
   /* literals */
   | TRUE_C
-      { yTRACE("expression -> TRUE_C \n") }
+      {
+        yTRACE("expression -> TRUE_C \n") 
+        $$ = ast_allocate(BOOL_NODE, $1, yyline );
+      }
   | FALSE_C
-      { yTRACE("expression -> FALSE_C \n") }
+      { 
+        yTRACE("expression -> FALSE_C \n") 
+        $$ = ast_allocate(BOOL_NODE, $1, yyline );
+      }
   | INT_C
       { 
         yTRACE("expression -> INT_C \n");
-        $$ = ast_allocate(INT_NODE, $1);
+        $$ = ast_allocate(INT_NODE, $1, yyline );
       }
   | FLOAT_C
-      { yTRACE("expression -> FLOAT_C \n") }
+      { 
+        yTRACE("expression -> FLOAT_C \n") 
+        $$ = ast_allocate(FLOAT_NODE, $1, yyline );
+      }
 
   /* misc */
   | '(' expression ')'
-      { yTRACE("expression -> ( expression ) \n") }
+      { 
+        yTRACE("expression -> ( expression ) \n") 
+        $$ = $2;
+      }
   | variable { }
-    { yTRACE("expression -> variable \n") }
+      {
+        yTRACE("expression -> variable \n") 
+        $$ = $1;
+      }
   ;
 
 variable
   : ID
       {
         yTRACE("variable -> ID \n");
-        $$ = ast_allocate(VAR_NODE, $1);
+        Type *type = (Type *) malloc(sizeof(Type));
+        type->length = 1;
+        $$ = ast_allocate(VAR_NODE, $1, type, yyline );
       }
   | ID '[' INT_C ']' %prec '['
       {
         yTRACE("variable -> ID [ INT_C ] \n")
-        $$ = ast_allocate(ARRAY_NODE, $1, $3);
+        Type *type = (Type *) malloc(sizeof(Type));
+        type->length = $3;
+        $$ = ast_allocate(VAR_NODE, $1, type, yyline );
       }
   ;
 
 arguments
   : arguments ',' expression
-      { yTRACE("arguments -> arguments , expression \n") }
+      { 
+        yTRACE("arguments -> arguments , expression \n")
+        $$ = ast_allocate(ARGUMENTS_NODE, "arguments", $1, $3, yyline);
+      }
   | expression
-      { yTRACE("arguments -> expression \n") }
+      { 
+        yTRACE("arguments -> expression \n") 
+        $$ = $1;
+      }
   ;
 
 arguments_opt
   : arguments
-      { yTRACE("arguments_opt -> arguments \n") }
+      { 
+        yTRACE("arguments_opt -> arguments \n") 
+        $$ = $1;
+      }
   |
-      { yTRACE("arguments_opt -> \n") }
+      { 
+        yTRACE("arguments_opt -> \n") 
+      }
   ;
 
 %%

@@ -18,6 +18,22 @@ struct node_;
 typedef struct node_ node;
 extern node *ast;
 
+struct TypeStruct;
+typedef struct TypeStruct Type;
+
+struct TypeStruct {
+   enum BasicType{
+   INT,
+   FLOAT,
+   BOOLEAN,
+   Any
+   };
+   
+   BasicType basic_type;
+ 
+   int length;
+};
+
 typedef enum {
   UNKNOWN               = 0,
 
@@ -28,14 +44,15 @@ typedef enum {
   BINARY_EXPRESSION_NODE= (1 << 2) | (1 << 4),
   INT_NODE              = (1 << 2) | (1 << 5), 
   FLOAT_NODE            = (1 << 2) | (1 << 6),
+  BOOL_NODE             = (1 << 22),
   IDENT_NODE            = (1 << 2) | (1 << 7),
   VAR_NODE              = (1 << 2) | (1 << 8),
-  ARRAY_NODE            = (1 << 2) | (1 << 9),
   FUNCTION_NODE         = (1 << 2) | (1 << 10),
   CONSTRUCTOR_NODE      = (1 << 2) | (1 << 11),
 
   STATEMENTS_NODE       = (1 << 1),
   IF_STATEMENT_NODE     = (1 << 1) | (1 << 12),
+  IF_WITH_ELSE_STATEMENT_NODE = (1 << 21),
   WHILE_STATEMENT_NODE  = (1 << 1) | (1 << 13),
   ASSIGNMENT_NODE       = (1 << 1) | (1 << 14),
   NESTED_SCOPE_NODE     = (1 << 1) | (1 << 15),
@@ -44,7 +61,9 @@ typedef enum {
   DECLARATIONS_NODE     = (1 << 17),
   DECLARATION_NODE      = (1 << 18),
   DECLARATION_WITH_INIT_NODE = (1 << 19),
-  DECLARATION_CONST_NODE= (1 << 20)
+  DECLARATION_CONST_NODE= (1 << 20),
+
+  ARGUMENTS_NODE        = (1 << 23)
 } node_kind;
 
 struct node_ {
@@ -98,13 +117,20 @@ struct node_ {
     } float_literal;
 
     struct {
+      bool value;
+    } bool_literal;
+
+    struct {
       char *identifier;
+      Type type_info;
     } var_expr;
 
+    /*
     struct {
       char *identifier;
       int length;
     } array_expr;
+    */
 
     // etc.
   };
