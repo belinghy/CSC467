@@ -216,18 +216,18 @@ void ast_print_recurse(node *n, int indent, int level) {
               get_type(n->declaration.type_info));
     break;
   }
-
-  /*
+  
   case DECLARATION_WITH_INIT_NODE:
   {
     PRINT_INDENT(indent); printf("(DECLARATION ");
-    printf("%s ", n->declaration_init.id);
-    print_type(n->declaration_init.type_info);
+    printf("%s %s ", n->declaration_init.id,
+                    get_type(n->declaration_init.type_info));
     ast_print_recurse(n->declaration_init.expression, indent, level);
     printf(")\n");
     break;
   }
 
+  /*
   case DECLARATION_CONST_NODE:
   {
     Type *type_info = va_arg(args, Type *);
