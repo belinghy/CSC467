@@ -35,35 +35,28 @@ struct TypeStruct {
 };
 
 typedef enum {
-  UNKNOWN               = 0,
+    SCOPE_NODE,
 
-  SCOPE_NODE            = (1 << 0),
-  
-  EXPRESSION_NODE       = (1 << 2),
-  UNARY_EXPRESION_NODE  = (1 << 2) | (1 << 3),
-  BINARY_EXPRESSION_NODE= (1 << 2) | (1 << 4),
-  INT_NODE              = (1 << 2) | (1 << 5), 
-  FLOAT_NODE            = (1 << 2) | (1 << 6),
-  BOOL_NODE             = (1 << 22),
-  IDENT_NODE            = (1 << 2) | (1 << 7),
-  VAR_NODE              = (1 << 2) | (1 << 8),
-  FUNCTION_NODE         = (1 << 2) | (1 << 10),
-  CONSTRUCTOR_NODE      = (1 << 2) | (1 << 11),
+    DECLARATIONS_NODE,
+    STATEMENTS_NODE,
 
-  STATEMENTS_NODE       = (1 << 1),
-  IF_STATEMENT_NODE     = (1 << 1) | (1 << 12),
-  IF_WITH_ELSE_STATEMENT_NODE = (1 << 21),
-  WHILE_STATEMENT_NODE  = (1 << 1) | (1 << 13),
-  ASSIGNMENT_NODE       = (1 << 1) | (1 << 14),
-  NESTED_SCOPE_NODE     = (1 << 1) | (1 << 15),
-  EMPTY_STATEMENT_NODE  = (1 << 1) | (1 << 16),
+    DECLARATION_NODE,
+    DECLARATION_WITH_INIT_NODE,
+    DECLARATION_CONST_NODE,
 
-  DECLARATIONS_NODE     = (1 << 17),
-  DECLARATION_NODE      = (1 << 18),
-  DECLARATION_WITH_INIT_NODE = (1 << 19),
-  DECLARATION_CONST_NODE= (1 << 20),
+    ASSIGNMENT_NODE,
+    IF_WITH_ELSE_STATEMENT_NODE,
+    IF_STATEMENT_NODE,
+    CONSTRUCTOR_NODE,
+    FUNCTION_NODE,
+    UNARY_EXPRESION_NODE,
+    BINARY_EXPRESSION_NODE,
 
-  ARGUMENTS_NODE        = (1 << 23)
+    BOOL_NODE,
+    INT_NODE,
+    FLOAT_NODE,
+    VAR_NODE,
+    ARGUMENTS_NODE,
 } node_kind;
 
 struct node_ {
@@ -74,39 +67,73 @@ struct node_ {
 
   union {
     struct {
-      char *name;
       node *declarations;
       node *statements;
     } scope;
 
     struct {
-      char *name;
       node *declarations;
       node *declaration;
     } declarations;
 
     struct {
-      char *name;
       node *statements;
       node *statement;
     } statements;
-  
-    struct {
-      int op;
-      node *right;
-    } unary_expr;
 
     struct {
-      int op;
-      node *left;
-      node *right;
-    } binary_expr;
+      node *id;
+    } declaration;
+
+    struct {
+      node *id;
+      node *expression;
+    } declaration_init;
+
+    struct {
+      node *id;
+      node *expression;
+    } declaration_const;
 
     struct {
       int op;
       node *left;
       node *right;
     } assignment_stmt;
+
+    struct {
+      node *expression;
+      node *then_stmt;
+      node *else_stmt; 
+    } if_else_stmt;
+
+    struct {
+      node *expression;
+      node *then_stmt;
+    } if_stmt;
+
+    struct {
+      Type type_info;
+      node *arguments;    
+    } constructor;
+
+    struct {
+      int func;
+      node *arguments;
+    } function;
+
+    struct {
+      int op;
+      Type type_info;
+      node *right;
+    } unary_expr;
+
+    struct {
+      int op;
+      Type type_info;
+      node *left;
+      node *right;
+    } binary_expr;
 
     struct {
       int value;
@@ -125,14 +152,10 @@ struct node_ {
       Type type_info;
     } var_expr;
 
-    /*
     struct {
-      char *identifier;
-      int length;
-    } array_expr;
-    */
-
-    // etc.
+      node *arguments;
+      node *argument;
+    } arguments;
   };
 };
 
