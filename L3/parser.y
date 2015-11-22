@@ -344,6 +344,7 @@ expression
   | expression GEQ expression %prec GEQ
       {
         yTRACE("expression -> expression GEQ expression \n")
+        $$ = ast_allocate(BINARY_EXPRESSION_NODE, GEQ, $1 , $3, yyline );
       }
   | expression '+' expression %prec '+'
       {
