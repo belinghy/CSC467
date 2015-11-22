@@ -60,13 +60,16 @@ node *ast_allocate(node_kind kind, ...) {
 
   case DECLARATION_NODE:
   {
-    // TODO
+    ast->declaration.type_info = va_arg(args, Type *);
+    ast->declaration.id = va_arg(args, char *);
     break;
   }
 
   case DECLARATION_WITH_INIT_NODE:
   {
-    // TODO
+    ast->declaration_init.type_info = va_arg(args, Type *);
+    ast->declaration_init.id = va_arg(args, char *);
+    ast->declaration_init.expression = va_arg(args, node *);
     break;
   }
 

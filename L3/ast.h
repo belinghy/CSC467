@@ -32,6 +32,7 @@ struct TypeStruct {
    BasicType basic_type;
  
    int length;
+   bool is_const;
 };
 
 typedef enum {
@@ -82,16 +83,18 @@ struct node_ {
     } statements;
 
     struct {
-      node *id;
+      Type *type_info;
+      char *id;
     } declaration;
 
     struct {
-      node *id;
+      char *id;
       node *expression;
+      Type *type_info;
     } declaration_init;
 
     struct {
-      node *id;
+      char *id;
       node *expression;
     } declaration_const;
 
@@ -113,7 +116,7 @@ struct node_ {
     } if_stmt;
 
     struct {
-      Type type_info;
+      Type *type_info;
       node *arguments;    
     } constructor;
 
@@ -124,13 +127,13 @@ struct node_ {
 
     struct {
       int op;
-      Type type_info;
+      Type *type_info;
       node *right;
     } unary_expr;
 
     struct {
       int op;
-      Type type_info;
+      Type *type_info;
       node *left;
       node *right;
     } binary_expr;
@@ -149,7 +152,7 @@ struct node_ {
 
     struct {
       char *identifier;
-      Type type_info;
+      Type *type_info;
     } var_expr;
 
     struct {
