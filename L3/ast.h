@@ -115,31 +115,35 @@ struct node_ {
     struct {
       int func_id;
       node *arguments;
+      Type *type_info;
     } function;
 
     struct {
       int op;
-      // Type *type_info;
       node *right;
+      Type *type_info;
     } unary_expr;
 
     struct {
       int op;
-      // Type *type_info;
       node *left;
       node *right;
+      Type *type_info;
     } binary_expr;
 
     struct {
       int value;
+      Type *type_info;
     } int_literal;
 
     struct {
       float value;
+      Type *type_info;
     } float_literal;
 
     struct {
       bool value;
+      Type *type_info;
     } bool_literal;
 
     struct {
@@ -151,6 +155,8 @@ struct node_ {
     struct {
       node *arguments;
       node *argument;
+      Type *type_info;
+      int num_args;
     } arguments;
   };
 };

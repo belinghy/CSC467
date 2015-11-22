@@ -138,13 +138,18 @@ int semantic_check_recurse(node *n, SymbolTable *s){
     case DECLARATION_NODE:
       /* Enter variable into symbol table */
       if((s->put(n->declaration.id, n->declaration.type_info)) == 1){
-          printf("ERROR: line %d: redeclaration of variable %s\n", n->line, n->declaration.id);
+          fprintf(errorFile, "ERROR: line %d: redeclaration of variable %s\n", n->line, n->declaration.id);
+          errorOccurred = true;
       }
       break;
 
     case DECLARATION_WITH_INIT_NODE:
     {
-      //TODO: check type, add to symbol table
+      //TODO: check type
+      if((s->put(n->declaration_init.id, n->declaration_init.type_info)) == 1){
+          fprintf(errorFile, "ERROR: line %d: redeclaration of variable %s\n", n->line, n->declaration_init.id);
+          errorOccurred = true;
+      }
       break;
     }
     case DECLARATION_CONST_NODE:

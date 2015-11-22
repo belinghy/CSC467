@@ -411,7 +411,7 @@ expression
       }
   | variable
       {
-        yTRACE("expression -> variable \n") 
+        yTRACE("expression -> variable \n")
         $$ = $1;
       }
   ;

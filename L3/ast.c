@@ -104,6 +104,11 @@ node *ast_allocate(node_kind kind, ...) {
   {
     ast->function.func_id = va_arg(args, int);
     ast->function.arguments = va_arg(args, node *);
+    Type *type = (Type *) malloc(sizeof(Type));
+    type->length = -1;
+    type->basic_type = Type::ANY;
+    type->is_const = false;
+    ast->function.type_info = type;
     break;
   }
 
@@ -111,26 +116,59 @@ node *ast_allocate(node_kind kind, ...) {
   {
     ast->unary_expr.op = va_arg(args, int);
     ast->unary_expr.right = va_arg(args, node *);
+    Type *type = (Type *) malloc(sizeof(Type));
+    type->length = -1;
+    type->basic_type = Type::ANY;
+    type->is_const = false;
+    ast->unary_expr.type_info = type;
     break;
   }
 
   case BINARY_EXPRESSION_NODE:
+  {
     ast->binary_expr.op = va_arg(args, int);
     ast->binary_expr.left = va_arg(args, node *);
     ast->binary_expr.right = va_arg(args, node *);
+    Type *type = (Type *) malloc(sizeof(Type));
+    type->length = -1;
+    type->basic_type = Type::ANY;
+    type->is_const = false;
+    ast->binary_expr.type_info = type;
     break;
+  }
 
   case BOOL_NODE:
+  {
     ast->bool_literal.value = (va_arg(args, int) == 1) ? true : false;
+    Type *type = (Type *) malloc(sizeof(Type));
+    type->length = 1;
+    type->basic_type = Type::BOOLEAN;
+    type->is_const = false;
+    ast->bool_literal.type_info = type;
     break;
+  }
 
   case INT_NODE:
+  {
     ast->int_literal.value = va_arg(args, int);
+    Type *type = (Type *) malloc(sizeof(Type));
+    type->length = 1;
+    type->basic_type = Type::INT;
+    type->is_const = false;
+    ast->int_literal.type_info = type;
     break;
+  }
 
   case FLOAT_NODE:
+  {
     ast->float_literal.value = (float) va_arg(args, double);
+    Type *type = (Type *) malloc(sizeof(Type));
+    type->length = 1;
+    type->basic_type = Type::FLOAT;
+    type->is_const = false;
+    ast->float_literal.type_info = type;
     break;
+  }
 
   case VAR_NODE:
     ast->variable.identifier = va_arg(args, char *);
@@ -142,6 +180,12 @@ node *ast_allocate(node_kind kind, ...) {
   {
     ast->arguments.arguments = va_arg(args, node *);
     ast->arguments.argument = va_arg(args, node *);
+    Type *type = (Type *) malloc(sizeof(Type));
+    type->length = -1;
+    type->basic_type = Type::ANY;
+    type->is_const = false;
+    ast->arguments.type_info = type;
+    ast->arguments.num_args = -1;
     break;
   }
 
@@ -245,6 +289,7 @@ void ast_free(node *ast) {
   {
     // ast->function.func_id = va_arg(args, int);
     ast_free(ast->function.arguments);
+    free(ast->function.type_info); ast->function.type_info = NULL;
     break;
   }
 
@@ -252,6 +297,7 @@ void ast_free(node *ast) {
   {
     // ast->unary_expr.op = va_arg(args, int);
     ast_free(ast->unary_expr.right);
+    free(ast->unary_expr.type_info); ast->unary_expr.type_info = NULL;
     break;
   }
 
@@ -260,19 +306,23 @@ void ast_free(node *ast) {
     // ast->binary_expr.op = va_arg(args, int);
     ast_free(ast->binary_expr.left);
     ast_free(ast->binary_expr.right);
+    free(ast->binary_expr.type_info); ast->binary_expr.type_info = NULL;
     break;
   }
 
   case BOOL_NODE:
     // ast->bool_literal.value = (va_arg(args, int) == 1) ? true : false;
+    free(ast->bool_literal.type_info); ast->bool_literal.type_info = NULL;
     break;
 
   case INT_NODE:
     // ast->int_literal.value = va_arg(args, int);
+    free(ast->int_literal.type_info); ast->int_literal.type_info = NULL;
     break;
 
   case FLOAT_NODE:
     // ast->float_literal.value = (float) va_arg(args, double);
+    free(ast->float_literal.type_info); ast->float_literal.type_info = NULL;
     break;
 
   case VAR_NODE:
@@ -287,6 +337,7 @@ void ast_free(node *ast) {
   {
     ast_free(ast->arguments.arguments);
     ast_free(ast->arguments.argument);
+    free(ast->arguments.type_info); ast->arguments.type_info = NULL;
     break;
   }
 
@@ -596,137 +647,3 @@ char *get_operator(int op) {
       return "UNKNOWN-OP";
   }
 }
-
-/*
-void ast_print_recurse(node *n, int level) {
-  if (n == NULL) return;
-
-  for (int i = 0; i < level; i++) {
-    printf("    ");
-  }
-
-  ast_print_node(n);
-  printf("\n");
-
-  int child_index = 0;
-  node *child;
-  while ((child = ast_get_child(n, child_index))) {
-    ast_print_recurse(child, (level + 1));
-    child_index++;
-  }
-}
-
-void ast_print_node(node *n) {
-  switch (n->kind) {
-
-  case SCOPE_NODE:
-    break;
-
-  case DECLARATIONS_NODE:
-    break;
-
-  case STATEMENTS_NODE:
-    break;
-
-  case DECLARATION_NODE:
-  
-  case BINARY_EXPRESSION_NODE:
-    printf("%c", n->binary_expr.op);
-    break;
-
-  case INT_NODE:
-    printf("%d", n->int_literal.value);
-    break;
-  
-  case FLOAT_NODE:
-    printf("%f", n->float_literal.value);
-    break;
-
-  case VAR_NODE:
-    printf("%s", n->variable.identifier);
-    break;
-
-  case ASSIGNMENT_NODE:
-    printf("%c", n->assignment_stmt.op);
-    break;
-
-  default:
-    break;
-  }
-}
-
-// if no child at that index, return null
-node *ast_get_child(node *n, int child_index) {
-
-  switch (n->kind) {
-
-  case SCOPE_NODE:
-  {
-    if (child_index == 0) {
-      return n->scope.declarations;
-    } else if (child_index == 1) {
-      return n->scope.statements;
-    }
-    break;
-  }
-
-  case DECLARATIONS_NODE:
-  {
-    if (child_index == 0) {
-      return n->declarations.declarations;
-    } else if (child_index == 1) {
-      return n->declarations.declaration;
-    }
-    break;
-  }
-
-  case STATEMENTS_NODE:
-  {
-    if (child_index == 0) {
-      return n->statements.statements;
-    } else if (child_index == 1) {
-      return n->statements.statement;
-    }
-    break;
-  }
-
-  case DECLARATION_NODE:
-    break;
-
-  case ASSIGNMENT_NODE:
-  {
-    if (child_index == 0) {
-      return n->assignment_stmt.left;
-    } else if (child_index == 1) {
-      return n->assignment_stmt.right;
-    }
-    break;
-  }
-  
-  case BINARY_EXPRESSION_NODE:
-  {
-    if (child_index == 0) {
-      return n->binary_expr.left;
-    } else if (child_index == 1) {
-      return n->binary_expr.right;
-    }
-    break;
-  }
-
-  case INT_NODE:
-  case VAR_NODE:
-    break;
-
-  case ARGUMENTS_NODE:
-  {
-    // TODO
-    break;
-  }
-
-  default:
-    break;
-  }
-
-  return NULL;
-}
-*/
