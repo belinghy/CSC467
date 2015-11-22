@@ -161,7 +161,7 @@ declarations
       {
         // ast->declarations
         yTRACE("declarations -> \n");
-        $$ = ast_allocate(DECLARATIONS_NODE, NULL, yyline);
+        $$ = ast_allocate(DECLARATIONS_NODE, NULL, NULL, yyline);
       }
   ;
 
@@ -176,7 +176,7 @@ statements
       {
         // ast->statements
         yTRACE("statements -> \n")
-        $$ = ast_allocate(STATEMENTS_NODE, NULL, yyline);
+        $$ = ast_allocate(STATEMENTS_NODE, NULL, NULL, yyline);
       }
   ;
 
@@ -297,12 +297,12 @@ expression
   | '-' expression %prec UMINUS
       {
         yTRACE("expression -> - expression \n")
-        $$ = ast_allocate(UNARY_EXPRESION_NODE, '-', $2, yyline );
+        $$ = ast_allocate(UNARY_EXPRESSION_NODE, '-', $2, yyline );
       }
   | '!' expression %prec '!'
       {
         yTRACE("expression -> ! expression \n")
-        $$ = ast_allocate(UNARY_EXPRESION_NODE, '!', $2, yyline );
+        $$ = ast_allocate(UNARY_EXPRESSION_NODE, '!', $2, yyline );
       }
 
   /* binary operators */
@@ -400,7 +400,7 @@ expression
         yTRACE("expression -> ( expression ) \n") 
         $$ = $2;
       }
-  | variable { }
+  | variable
       {
         yTRACE("expression -> variable \n") 
         $$ = $1;
@@ -428,12 +428,12 @@ arguments
   : arguments ',' expression
       { 
         yTRACE("arguments -> arguments , expression \n")
-        $$ = ast_allocate(ARGUMENTS_NODE, "arguments", $1, $3, yyline);
+        $$ = ast_allocate(ARGUMENTS_NODE, $1, $3, yyline);
       }
   | expression
       { 
         yTRACE("arguments -> expression \n") 
-        $$ = $1;
+        $$ = ast_allocate(ARGUMENTS_NODE, NULL, $1, yyline);;
       }
   ;
 
@@ -446,7 +446,7 @@ arguments_opt
   |
       { 
         yTRACE("arguments_opt -> \n")
-        $$ = NULL;
+        $$ = ast_allocate(ARGUMENTS_NODE, NULL, NULL, yyline);
       }
   ;
 

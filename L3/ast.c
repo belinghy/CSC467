@@ -8,10 +8,11 @@
 #include "parser.tab.h"
 
 #define DEBUG_PRINT_TREE 0
+#define PRINT_INDENT(indent) { for(int i = 0; i < indent; i++) { printf("    "); }}
 
 node *ast_get_child(node *n, int child_index);
 void ast_print_node(node *n);
-void ast_print_recurse(node *n, int level);
+void ast_print_recurse(node *n, int indent, int level);
 
 node *ast = NULL;
 
@@ -34,27 +35,15 @@ node *ast_allocate(node_kind kind, ...) {
 
   case DECLARATIONS_NODE:
   {
-    node *declarations = va_arg(args, node *);
-    if (declarations != NULL) {
-      ast->declarations.declarations = declarations;
-      ast->declarations.declaration = va_arg(args, node *);
-    } else {
-      ast->declarations.declarations = NULL;
-      ast->declarations.declaration = NULL;
-    }
+    ast->declarations.declarations = va_arg(args, node *);
+    ast->declarations.declaration = va_arg(args, node *);
     break;
   }
 
   case STATEMENTS_NODE:
   {
-    node *statements = va_arg(args, node *);
-    if (statements != NULL) {
-      ast->statements.statements = statements;
-      ast->statements.statement = va_arg(args, node *);
-    } else {
-      ast->statements.statements = NULL;
-      ast->statements.statements = NULL;
-    }
+    ast->statements.statements = va_arg(args, node *);
+    ast->statements.statement = va_arg(args, node *);
     break;
   }
 
@@ -75,7 +64,11 @@ node *ast_allocate(node_kind kind, ...) {
 
   case DECLARATION_CONST_NODE:
   {
-    // TODO
+    Type *type_info = va_arg(args, Type *);
+    type_info->is_const = true;
+    ast->declaration_const.type_info = type_info;
+    ast->declaration_const.id = va_arg(args, char *);
+    ast->declaration_const.expression = va_arg(args, node *);
     break;
   }
 
@@ -87,31 +80,37 @@ node *ast_allocate(node_kind kind, ...) {
 
   case IF_WITH_ELSE_STATEMENT_NODE:
   {
-    // TODO
+    ast->if_else_stmt.expression = va_arg(args, node *);
+    ast->if_else_stmt.then_stmt = va_arg(args, node *);
+    ast->if_else_stmt.else_stmt = va_arg(args, node *);
     break;
   }
 
   case IF_STATEMENT_NODE:
   {
-    // TODO
+    ast->if_stmt.expression = va_arg(args, node *);
+    ast->if_stmt.then_stmt = va_arg(args, node *);
     break;
   }
 
   case CONSTRUCTOR_NODE:
   {
-    // TODO
+    ast->constructor.type_info = va_arg(args, Type *);
+    ast->constructor.arguments = va_arg(args, node *);
     break;
   }
 
   case FUNCTION_NODE:
   {
-    // TODO
+    ast->function.func_id = va_arg(args, int);
+    ast->function.arguments = va_arg(args, node *);
     break;
   }
 
-  case UNARY_EXPRESION_NODE:
+  case UNARY_EXPRESSION_NODE:
   {
-    // TODO
+    ast->unary_expr.op = va_arg(args, int);
+    ast->unary_expr.right = va_arg(args, node *);
     break;
   }
 
@@ -122,10 +121,8 @@ node *ast_allocate(node_kind kind, ...) {
     break;
 
   case BOOL_NODE:
-  {
-    // TODO
+    ast->bool_literal.value = va_arg(args, bool);
     break;
-  }
 
   case INT_NODE:
     ast->int_literal.value = va_arg(args, int);
@@ -136,12 +133,14 @@ node *ast_allocate(node_kind kind, ...) {
     break;
 
   case VAR_NODE:
-    ast->var_expr.identifier = va_arg(args, char*);
+    ast->variable.identifier = va_arg(args, char *);
+    ast->variable.type_info = va_arg(args, Type *);
     break;
 
   case ARGUMENTS_NODE:
   {
-    // TODO
+    ast->arguments.arguments = va_arg(args, node *);
+    ast->arguments.argument = va_arg(args, node *);
     break;
   }
 
@@ -159,9 +158,244 @@ void ast_free(node *ast) {
 }
 
 void ast_print(node *ast) {
-  ast_print_recurse(ast, 0);
+  ast_print_recurse(ast, 0, 0);
 }
 
+void ast_print_recurse(node *n, int indent, int level) {
+  if (n == NULL) return;
+
+  /*
+  for (int i=0; i<indent; i++) {
+    printf("    ");
+    //printf("t%d", n->kind);
+    //printf("i%d", indent);
+    //printf("l%d", level);
+  }
+  */
+
+  switch(n->kind) {
+  
+  case SCOPE_NODE:
+    PRINT_INDENT(indent); printf("(SCOPE \n");
+    ast_print_recurse(n->scope.declarations, indent + 1, level);
+    ast_print_recurse(n->scope.statements, indent + 1, level);
+    PRINT_INDENT(indent); printf("END_SCOPE)\n");
+    break;
+
+  case DECLARATIONS_NODE:
+  {
+    if (level == 0) {
+      PRINT_INDENT(indent); printf("(DECLARATIONS \n");
+    }
+    ast_print_recurse(n->declarations.declarations, indent, level + 1);
+    ast_print_recurse(n->declarations.declaration, indent + 1, level);
+    if (level == 0) {
+      PRINT_INDENT(indent); printf("END_DECLARATIONS)\n");
+    }
+    break;
+  }
+
+  case STATEMENTS_NODE:
+  {
+    if (level == 0) {
+      PRINT_INDENT(indent); printf("(STATEMENTS \n");
+    }
+    ast_print_recurse(n->statements.statements, indent, level + 1);
+    ast_print_recurse(n->statements.statement, indent + 1, level);
+    if (level == 0) {
+      PRINT_INDENT(indent); printf("END_STATEMENTS)\n");
+    }
+    break;
+  }
+
+  case DECLARATION_NODE:
+  {
+    PRINT_INDENT(indent);
+    printf("(DECLARATION %s %s)\n",
+              n->declaration.id,
+              get_type(n->declaration.type_info));
+    break;
+  }
+
+  /*
+  case DECLARATION_WITH_INIT_NODE:
+  {
+    PRINT_INDENT(indent); printf("(DECLARATION ");
+    printf("%s ", n->declaration_init.id);
+    print_type(n->declaration_init.type_info);
+    ast_print_recurse(n->declaration_init.expression, indent, level);
+    printf(")\n");
+    break;
+  }
+
+  case DECLARATION_CONST_NODE:
+  {
+    Type *type_info = va_arg(args, Type *);
+    type_info->is_const = true;
+    n->declaration_const.type_info = type_info;
+    n->declaration_const.id = va_arg(args, char *);
+    n->declaration_const.expression = va_arg(args, node *);
+    break;
+  }
+  */
+
+  case ASSIGNMENT_NODE:
+  {
+    PRINT_INDENT(indent); printf("(ASSIGN ");
+    ast_print_recurse(n->assignment_stmt.left, indent, level);
+    printf(" ");
+    ast_print_recurse(n->assignment_stmt.right, indent, level);
+    printf(")\n");
+    break;
+  }
+
+  /*
+  case IF_WITH_ELSE_STATEMENT_NODE:
+  {
+    n->if_else_stmt.expression = va_arg(args, node *);
+    n->if_else_stmt.then_stmt = va_arg(args, node *);
+    n->if_else_stmt.else_stmt = va_arg(args, node *);
+    break;
+  }
+
+  case IF_STATEMENT_NODE:
+  {
+    n->if_stmt.expression = va_arg(args, node *);
+    n->if_stmt.then_stmt = va_arg(args, node *);
+    break;
+  }
+
+  case CONSTRUCTOR_NODE:
+  {
+    n->constructor.type_info = va_arg(args, Type *);
+    n->constructor.arguments = va_arg(args, node *);
+    break;
+  }
+
+  case FUNCTION_NODE:
+  {
+    n->function.func_id = va_arg(args, int);
+    n->function.arguments = va_arg(args, node *);
+    break;
+  }
+
+  case UNARY_EXPRESSION_NODE:
+  {
+    n->unary_expr.op = va_arg(args, int);
+    n->unary_expr.right = va_arg(args, node *);
+    break;
+  }
+  */
+
+  case BINARY_EXPRESSION_NODE:
+  {
+    printf("(BINARY ");
+    ast_print_recurse(n->binary_expr.left, indent, level);
+    printf(get_operator(n->binary_expr.op));
+    ast_print_recurse(n->binary_expr.right, indent, level);
+    printf(")");
+    break;
+  }
+
+  case BOOL_NODE:
+  { 
+    if (n->bool_literal.value) {
+      printf("true");
+    } else {
+      printf("false");
+    }
+    break;
+  }
+
+  case INT_NODE:
+  {
+    printf("%d", n->int_literal.value);
+    break;
+  }
+
+  case FLOAT_NODE:
+  {
+    printf("%f", n->float_literal.value);
+    break;
+  }
+
+  case VAR_NODE:
+  {
+    printf("%s", n->variable.identifier);
+    // n->variable.type_info = va_arg(args, Type *);
+    break;
+  }
+
+  /*
+  case ARGUMENTS_NODE:
+  {
+    n->arguments.arguments = va_arg(args, node *);
+    n->arguments.argument = va_arg(args, node *);
+    break;
+  }
+  */
+
+  default: break;
+  }
+}
+
+char *get_type(Type *type) {
+  switch (type->basic_type) {
+    case Type::INT:
+      return "int";
+      break;
+    case Type::FLOAT:
+      return "float";
+      break;
+    case Type::BOOLEAN:
+      return "bool";
+      break;
+    default:
+      return "ANY-TYPE";
+      break;
+  }
+}
+
+char *get_operator(int op) {
+  switch (op) {
+    case OR:
+      return "||";
+    case AND:
+      return "&&";
+    case EQ:
+      return "==";
+    case NEQ:
+      return "!=";
+    case '>':
+      return ">";
+    case '<':
+      return "<";
+    case LEQ:
+      return "<=";
+    case GEQ:
+      return ">=";
+    case '+':
+      return "+";
+    case '-':
+      return "-";
+    case '*':
+      return "*";
+    case '/':
+      return "/";
+    case '^':
+      return "^";
+    case '!':
+      return "!";
+    case UMINUS:
+      return "-";
+    case '=':
+      return "=";
+    default:
+      return "UNKNOWN-OP";
+  }
+}
+
+/*
 void ast_print_recurse(node *n, int level) {
   if (n == NULL) return;
 
@@ -207,7 +441,7 @@ void ast_print_node(node *n) {
     break;
 
   case VAR_NODE:
-    printf("%s", n->var_expr.identifier);
+    printf("%s", n->variable.identifier);
     break;
 
   case ASSIGNMENT_NODE:
@@ -219,7 +453,7 @@ void ast_print_node(node *n) {
   }
 }
 
-/* if no child at that index, return null */
+// if no child at that index, return null
 node *ast_get_child(node *n, int child_index) {
 
   switch (n->kind) {
@@ -293,3 +527,4 @@ node *ast_get_child(node *n, int child_index) {
 
   return NULL;
 }
+*/

@@ -29,10 +29,10 @@ struct TypeStruct {
    Any
    };
    
-   BasicType basic_type;
+   BasicType basic_type = Any;
  
-   int length;
-   bool is_const;
+   int length = 1;
+   bool is_const = false;
 };
 
 typedef enum {
@@ -50,7 +50,7 @@ typedef enum {
     IF_STATEMENT_NODE,
     CONSTRUCTOR_NODE,
     FUNCTION_NODE,
-    UNARY_EXPRESION_NODE,
+    UNARY_EXPRESSION_NODE,
     BINARY_EXPRESSION_NODE,
 
     BOOL_NODE,
@@ -96,6 +96,7 @@ struct node_ {
     struct {
       char *id;
       node *expression;
+      Type *type_info;
     } declaration_const;
 
     struct {
@@ -121,19 +122,19 @@ struct node_ {
     } constructor;
 
     struct {
-      int func;
+      int func_id;
       node *arguments;
     } function;
 
     struct {
       int op;
-      Type *type_info;
+      // Type *type_info;
       node *right;
     } unary_expr;
 
     struct {
       int op;
-      Type *type_info;
+      // Type *type_info;
       node *left;
       node *right;
     } binary_expr;
@@ -153,7 +154,7 @@ struct node_ {
     struct {
       char *identifier;
       Type *type_info;
-    } var_expr;
+    } variable;
 
     struct {
       node *arguments;
@@ -165,5 +166,7 @@ struct node_ {
 node *ast_allocate(node_kind type, ...);
 void ast_free(node *ast);
 void ast_print(node * ast);
+char *get_type(Type *type);
+char *get_operator(int op);
 
 #endif /* AST_H_ */
