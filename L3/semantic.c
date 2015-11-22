@@ -151,13 +151,10 @@ int semantic_check_recurse(node *n, SymbolTable *s){
 
     case DECLARATION_WITH_INIT_NODE:
     {
-      //TODO: check type
       if((s->put(n->declaration_init.id, n->type_info)) == 1){
         fprintf(errorFile, "ERROR: line %d: redeclaration of variable %s\n", n->line, n->declaration_init.id);
         errorOccurred = true;
-      }
-
-      if (type_check(n->type_info, (n->declaration_init.expression)->type_info)) {
+      } else if (type_check(n->type_info, (n->declaration_init.expression)->type_info)) {
         fprintf(errorFile, "ERROR: line %d: type mismatch in declaration of variable %s\n", n->line, n->declaration_init.id);
         errorOccurred = true;
       }
@@ -166,7 +163,19 @@ int semantic_check_recurse(node *n, SymbolTable *s){
 
     case DECLARATION_CONST_NODE:
     {
-      //TODO: check type, check const, add to symbol table
+      // TODO: FIXME
+      if((s->put(n->declaration_const.id, n->type_info)) == 1){
+        fprintf(errorFile, "ERROR: line %d: redeclaration of variable %s\n", n->line, n->declaration_const.id);
+        errorOccurred = true;
+      } else if (n->type_info->is_const) {
+        if (((n->declaration_const.expression)->kind == VAR_NODE) && !((n->declaration_const.expression)->type_info->is_const)) {
+          fprintf(errorFile, "ERROR: line %d: const variable, %s, cannot be initialized with non-constant type\n", n->line, n->declaration_init.id);
+          errorOccurred = true;
+        }
+      } else if (type_check(n->type_info, (n->declaration_const.expression)->type_info)) {
+        fprintf(errorFile, "ERROR: line %d: type mismatch in declaration of variable %s\n", n->line, n->declaration_init.id);
+        errorOccurred = true;
+      }
       break;
     }
     case ASSIGNMENT_NODE:

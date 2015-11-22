@@ -55,6 +55,7 @@ node *ast_allocate(node_kind kind, ...) {
 
   case DECLARATION_NODE:
   {
+    free(ast->type_info);
     ast->type_info = va_arg(args, Type *);
     ast->declaration.id = va_arg(args, char *);
     break;
@@ -62,6 +63,7 @@ node *ast_allocate(node_kind kind, ...) {
 
   case DECLARATION_WITH_INIT_NODE:
   {
+    free(ast->type_info);
     ast->type_info = va_arg(args, Type *);
     ast->declaration_init.id = va_arg(args, char *);
     ast->declaration_init.expression = va_arg(args, node *);
@@ -70,6 +72,7 @@ node *ast_allocate(node_kind kind, ...) {
 
   case DECLARATION_CONST_NODE:
   {
+    free(ast->type_info);
     Type *type_info = va_arg(args, Type *);
     type_info->is_const = true;
     ast->type_info = type_info;
@@ -101,6 +104,7 @@ node *ast_allocate(node_kind kind, ...) {
 
   case CONSTRUCTOR_NODE:
   {
+    free(ast->type_info);
     ast->type_info = va_arg(args, Type *);
     ast->constructor.arguments = va_arg(args, node *);
     break;
@@ -110,11 +114,6 @@ node *ast_allocate(node_kind kind, ...) {
   {
     ast->function.func_id = va_arg(args, int);
     ast->function.arguments = va_arg(args, node *);
-    Type *type = (Type *) malloc(sizeof(Type));
-    type->length = -1;
-    type->basic_type = Type::ANY;
-    type->is_const = false;
-    ast->type_info = type;
     break;
   }
 
@@ -122,11 +121,6 @@ node *ast_allocate(node_kind kind, ...) {
   {
     ast->unary_expr.op = va_arg(args, int);
     ast->unary_expr.right = va_arg(args, node *);
-    Type *type = (Type *) malloc(sizeof(Type));
-    type->length = -1;
-    type->basic_type = Type::ANY;
-    type->is_const = false;
-    ast->type_info = type;
     break;
   }
 
@@ -135,43 +129,41 @@ node *ast_allocate(node_kind kind, ...) {
     ast->binary_expr.op = va_arg(args, int);
     ast->binary_expr.left = va_arg(args, node *);
     ast->binary_expr.right = va_arg(args, node *);
-    Type *type = (Type *) malloc(sizeof(Type));
-    type->length = -1;
-    type->basic_type = Type::ANY;
-    type->is_const = false;
-    ast->type_info = type;
     break;
   }
 
   case BOOL_NODE:
   {
+    free(ast->type_info);
     ast->bool_literal.value = (va_arg(args, int) == 1) ? true : false;
     Type *type = (Type *) malloc(sizeof(Type));
     type->length = 1;
     type->basic_type = Type::BOOLEAN;
-    type->is_const = false;
+    type->is_const = true;
     ast->type_info = type;
     break;
   }
 
   case INT_NODE:
   {
+    free(ast->type_info);
     ast->int_literal.value = va_arg(args, int);
     Type *type = (Type *) malloc(sizeof(Type));
     type->length = 1;
     type->basic_type = Type::INT;
-    type->is_const = false;
+    type->is_const = true;
     ast->type_info = type;
     break;
   }
 
   case FLOAT_NODE:
   {
+    free(ast->type_info);
     ast->float_literal.value = (float) va_arg(args, double);
     Type *type = (Type *) malloc(sizeof(Type));
     type->length = 1;
     type->basic_type = Type::FLOAT;
-    type->is_const = false;
+    type->is_const = true;
     ast->type_info = type;
     break;
   }
@@ -186,11 +178,6 @@ node *ast_allocate(node_kind kind, ...) {
   {
     ast->arguments.arguments = va_arg(args, node *);
     ast->arguments.argument = va_arg(args, node *);
-    Type *type = (Type *) malloc(sizeof(Type));
-    type->length = -1;
-    type->basic_type = Type::ANY;
-    type->is_const = false;
-    ast->type_info = type;
     ast->arguments.num_args = -1;
     break;
   }
@@ -210,8 +197,6 @@ void ast_free(node *ast) {
   if (ast == NULL) return;
 
   switch(ast->kind) {
-  printf("%d", ast->kind);
-  printf("\n");
 
   case SCOPE_NODE:
   {
