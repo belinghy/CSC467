@@ -291,9 +291,10 @@ void ast_print_recurse(node *n, int indent, int level) {
 
   case BINARY_EXPRESSION_NODE:
   {
-    printf("(BINARY ");
+    printf("(BINARY ");//TODO: type
+    printf("%s ", get_operator(n->binary_expr.op));
     ast_print_recurse(n->binary_expr.left, indent, level);
-    printf(get_operator(n->binary_expr.op));
+    printf(" ");
     ast_print_recurse(n->binary_expr.right, indent, level);
     printf(")");
     break;
