@@ -26,10 +26,10 @@ struct TypeStruct {
    INT,
    FLOAT,
    BOOLEAN,
-   Any
+   ANY
    };
    
-   BasicType basic_type = Any;
+   BasicType basic_type = ANY;
  
    int length = 1;
    bool is_const = false;
@@ -154,6 +154,7 @@ struct node_ {
     struct {
       char *identifier;
       Type *type_info;
+      int index;
     } variable;
 
     struct {

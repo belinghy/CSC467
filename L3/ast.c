@@ -121,7 +121,7 @@ node *ast_allocate(node_kind kind, ...) {
     break;
 
   case BOOL_NODE:
-    ast->bool_literal.value = va_arg(args, bool);
+    ast->bool_literal.value = (va_arg(args, int) == 1) ? true : false;
     break;
 
   case INT_NODE:
@@ -129,12 +129,13 @@ node *ast_allocate(node_kind kind, ...) {
     break;
 
   case FLOAT_NODE:
-    ast->float_literal.value = va_arg(args, float);
+    ast->float_literal.value = (float) va_arg(args, double);
     break;
 
   case VAR_NODE:
     ast->variable.identifier = va_arg(args, char *);
     ast->variable.type_info = va_arg(args, Type *);
+    ast->variable.index = va_arg(args, int);
     break;
 
   case ARGUMENTS_NODE:
@@ -168,8 +169,8 @@ void ast_print_recurse(node *n, int indent, int level) {
   
   case SCOPE_NODE:
     PRINT_INDENT(indent); printf("(SCOPE \n");
-    ast_print_recurse(n->scope.declarations, indent + 1, level);
-    ast_print_recurse(n->scope.statements, indent + 1, level);
+    ast_print_recurse(n->scope.declarations, indent + 1, 0);
+    ast_print_recurse(n->scope.statements, indent + 1, 0);
     PRINT_INDENT(indent); printf("END_SCOPE)\n");
     break;
 
@@ -209,6 +210,15 @@ void ast_print_recurse(node *n, int indent, int level) {
   }
   
   case DECLARATION_WITH_INIT_NODE:
+  {
+    PRINT_INDENT(indent); printf("(DECLARATION ");
+    printf("%s %s ", n->declaration_const.id,
+                    get_type(n->declaration_init.type_info));
+    ast_print_recurse(n->declaration_const.expression, indent, level);
+    printf(")\n");
+    break;
+  }
+
   case DECLARATION_CONST_NODE: /* No need to print const */
   {
     PRINT_INDENT(indent); printf("(DECLARATION ");
@@ -230,7 +240,6 @@ void ast_print_recurse(node *n, int indent, int level) {
   }
 
   case IF_WITH_ELSE_STATEMENT_NODE:
-  case IF_STATEMENT_NODE:
   {
     PRINT_INDENT(indent); printf("(IF ");
     ast_print_recurse(n->if_else_stmt.expression, indent, level);
@@ -240,6 +249,16 @@ void ast_print_recurse(node *n, int indent, int level) {
         printf("\n"); PRINT_INDENT(indent); printf(" ELSE\n");
         ast_print_recurse(n->if_else_stmt.else_stmt, indent + 1, level);
     }
+    PRINT_INDENT(indent); printf(" END_IF)\n");
+    break;
+  }
+
+  case IF_STATEMENT_NODE:
+  {
+    PRINT_INDENT(indent); printf("(IF ");
+    ast_print_recurse(n->if_stmt.expression, indent, level);
+    printf("\n");
+    ast_print_recurse(n->if_stmt.then_stmt, indent + 1, level);
     PRINT_INDENT(indent); printf(" END_IF)\n");
     break;
   }
@@ -284,7 +303,7 @@ void ast_print_recurse(node *n, int indent, int level) {
 
   case BOOL_NODE:
   { 
-    if (n->bool_literal.value) {
+    if (n->bool_literal.value == 1) {
       printf("true");
     } else {
       printf("false");
@@ -306,7 +325,14 @@ void ast_print_recurse(node *n, int indent, int level) {
 
   case VAR_NODE:
   {
-    printf("%s", n->variable.identifier);
+    if ((n->variable.type_info)->length == 1) {
+      printf("%s", n->variable.identifier);
+    } else {
+      printf("(INDEX %s %s %d)",
+                get_type(n->variable.type_info),
+                n->variable.identifier,
+                n->variable.index);
+    }
     // n->variable.type_info = va_arg(args, Type *);
     break;
   }
