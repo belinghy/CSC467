@@ -197,7 +197,7 @@ int semantic_check_recurse(node *n, SymbolTable *s){
       //TODO: check is declared, get type from symbol table, check index not out of bounds
       SymAttr *attr = s->lookup(n->variable.identifier);
       if(attr == NULL){
-        printf("ERROR: line %d: undeclared variable %s\n", n->line, n->declaration.id);
+        printf("ERROR: line %d: undeclared variable %s\n", n->line, n->variable.identifier);
         return 0;
       } 
 

@@ -17,10 +17,10 @@ public:
 
 class SymbolTable{
 private:
-  std::unordered_map<char *, SymAttr> htmap;
+  std::unordered_map<std::string, SymAttr> htmap;
   SymbolTable *prev_scope; /* enclosing scope */
   
-  bool exists(char *name){
+  bool exists(std::string name){
     if(htmap.find(name) == htmap.end()) {
         return false;
     }
@@ -33,27 +33,32 @@ public:
 
   /* 0 - successful put, 1 - redeclaration error */
   int put(char *name, Type *type) {
+    
+    std::string name_s = std::string(name);
+
     /* check for redeclaration in current scope */
-    if(exists(name)){
+    if(exists(name_s)){
       return 1;
     } else {
-      htmap[name] = SymAttr();
-      htmap[name].name = name;
-      htmap[name].type = type;
+      htmap[name_s] = SymAttr();
+      htmap[name_s].name = name;
+      htmap[name_s].type = type;
       return 0;
     }
   }
 
   SymAttr *lookup(char *name) {
 
-    if(exists(name)){
-      return &htmap[name];    
+    std::string name_s = std::string(name);
+
+    if(exists(name_s)){
+      return &htmap[name_s];    
     } 
 
     /* Lookup in enclosing scopes */
     SymbolTable *curr_scope = prev_scope;
     while((curr_scope != NULL)){
-      if(curr_scope->exists(name)) return &(curr_scope->htmap[name]);
+      if(curr_scope->exists(name_s)) return &(curr_scope->htmap[name_s]);
       curr_scope = curr_scope->prev_scope;      
     }
     return NULL;
