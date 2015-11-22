@@ -121,7 +121,7 @@ node *ast_allocate(node_kind kind, ...) {
     break;
 
   case BOOL_NODE:
-    ast->bool_literal.value = va_arg(args, bool);
+    ast->bool_literal.value = (va_arg(args, int) == 1) ? true : false;
     break;
 
   case INT_NODE:
@@ -129,12 +129,13 @@ node *ast_allocate(node_kind kind, ...) {
     break;
 
   case FLOAT_NODE:
-    ast->float_literal.value = va_arg(args, float);
+    ast->float_literal.value = (float) va_arg(args, double);
     break;
 
   case VAR_NODE:
     ast->variable.identifier = va_arg(args, char *);
     ast->variable.type_info = va_arg(args, Type *);
+    ast->variable.index = va_arg(args, int);
     break;
 
   case ARGUMENTS_NODE:
@@ -302,7 +303,7 @@ void ast_print_recurse(node *n, int indent, int level) {
 
   case BOOL_NODE:
   { 
-    if (n->bool_literal.value) {
+    if (n->bool_literal.value == 1) {
       printf("true");
     } else {
       printf("false");
@@ -324,7 +325,14 @@ void ast_print_recurse(node *n, int indent, int level) {
 
   case VAR_NODE:
   {
-    printf("%s", n->variable.identifier);
+    if ((n->variable.type_info)->length == 1) {
+      printf("%s", n->variable.identifier);
+    } else {
+      printf("(INDEX %s %s %d)",
+                get_type(n->variable.type_info),
+                n->variable.identifier,
+                n->variable.index);
+    }
     // n->variable.type_info = va_arg(args, Type *);
     break;
   }

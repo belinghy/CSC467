@@ -376,12 +376,12 @@ expression
   | TRUE_C
       {
         yTRACE("expression -> TRUE_C \n") 
-        $$ = ast_allocate(BOOL_NODE, $1, yyline );
+        $$ = ast_allocate(BOOL_NODE, 1, yyline );
       }
   | FALSE_C
       { 
         yTRACE("expression -> FALSE_C \n") 
-        $$ = ast_allocate(BOOL_NODE, $1, yyline );
+        $$ = ast_allocate(BOOL_NODE, 0, yyline );
       }
   | INT_C
       { 
@@ -413,14 +413,14 @@ variable
         yTRACE("variable -> ID \n");
         Type *type = (Type *) malloc(sizeof(Type));
         type->length = 1;
-        $$ = ast_allocate(VAR_NODE, $1, type, yyline );
+        $$ = ast_allocate(VAR_NODE, $1, type, -1, yyline );
       }
   | ID '[' INT_C ']' %prec '['
       {
         yTRACE("variable -> ID [ INT_C ] \n")
         Type *type = (Type *) malloc(sizeof(Type));
-        type->length = $3;
-        $$ = ast_allocate(VAR_NODE, $1, type, yyline );
+        type->length = -1;
+        $$ = ast_allocate(VAR_NODE, $1, type, $3, yyline );
       }
   ;
 
