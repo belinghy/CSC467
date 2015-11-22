@@ -28,14 +28,12 @@ node *ast_allocate(node_kind kind, ...) {
   switch(kind) {
   
   case SCOPE_NODE:
-    ast->scope.name = va_arg(args, char *);
     ast->scope.declarations = va_arg(args, node *);
     ast->scope.statements = va_arg(args, node *);
     break;
 
   case DECLARATIONS_NODE:
   {
-    ast->declarations.name = va_arg(args, char *);
     node *declarations = va_arg(args, node *);
     if (declarations != NULL) {
       ast->declarations.declarations = declarations;
@@ -49,7 +47,6 @@ node *ast_allocate(node_kind kind, ...) {
 
   case STATEMENTS_NODE:
   {
-    ast->statements.name = va_arg(args, char *);
     node *statements = va_arg(args, node *);
     if (statements != NULL) {
       ast->statements.statements = statements;
@@ -61,11 +58,71 @@ node *ast_allocate(node_kind kind, ...) {
     break;
   }
 
+  case DECLARATION_NODE:
+  {
+    // TODO
+    break;
+  }
+
+  case DECLARATION_WITH_INIT_NODE:
+  {
+    // TODO
+    break;
+  }
+
+  case DECLARATION_CONST_NODE:
+  {
+    // TODO
+    break;
+  }
+
+  case ASSIGNMENT_NODE:
+    ast->assignment_stmt.op = va_arg(args, int);
+    ast->assignment_stmt.left = va_arg(args, node *);
+    ast->assignment_stmt.right = va_arg(args, node *);
+    break;
+
+  case IF_WITH_ELSE_STATEMENT_NODE:
+  {
+    // TODO
+    break;
+  }
+
+  case IF_STATEMENT_NODE:
+  {
+    // TODO
+    break;
+  }
+
+  case CONSTRUCTOR_NODE:
+  {
+    // TODO
+    break;
+  }
+
+  case FUNCTION_NODE:
+  {
+    // TODO
+    break;
+  }
+
+  case UNARY_EXPRESION_NODE:
+  {
+    // TODO
+    break;
+  }
+
   case BINARY_EXPRESSION_NODE:
     ast->binary_expr.op = va_arg(args, int);
     ast->binary_expr.left = va_arg(args, node *);
     ast->binary_expr.right = va_arg(args, node *);
     break;
+
+  case BOOL_NODE:
+  {
+    // TODO
+    break;
+  }
 
   case INT_NODE:
     ast->int_literal.value = va_arg(args, int);
@@ -79,11 +136,11 @@ node *ast_allocate(node_kind kind, ...) {
     ast->var_expr.identifier = va_arg(args, char*);
     break;
 
-  case ASSIGNMENT_NODE:
-    ast->assignment_stmt.op = va_arg(args, int);
-    ast->assignment_stmt.left = va_arg(args, node *);
-    ast->assignment_stmt.right = va_arg(args, node *);
+  case ARGUMENTS_NODE:
+  {
+    // TODO
     break;
+  }
 
   default: break;
   }
@@ -124,15 +181,12 @@ void ast_print_node(node *n) {
   switch (n->kind) {
 
   case SCOPE_NODE:
-    printf("%s", n->scope.name);
     break;
 
   case DECLARATIONS_NODE:
-    printf("%s", n->declarations.name);
     break;
 
   case STATEMENTS_NODE:
-    printf("%s", n->statements.name);
     break;
   
   case BINARY_EXPRESSION_NODE:
