@@ -238,22 +238,22 @@ void ast_print_recurse(node *n, int indent, int level) {
     break;
   }
 
-  /*
   case IF_WITH_ELSE_STATEMENT_NODE:
-  {
-    n->if_else_stmt.expression = va_arg(args, node *);
-    n->if_else_stmt.then_stmt = va_arg(args, node *);
-    n->if_else_stmt.else_stmt = va_arg(args, node *);
-    break;
-  }
-
   case IF_STATEMENT_NODE:
   {
-    n->if_stmt.expression = va_arg(args, node *);
-    n->if_stmt.then_stmt = va_arg(args, node *);
+    PRINT_INDENT(indent); printf("(IF ");
+    ast_print_recurse(n->if_else_stmt.expression, indent, level);
+    printf("\n");
+    ast_print_recurse(n->if_else_stmt.then_stmt, indent + 1, level);
+    if(n->kind == IF_WITH_ELSE_STATEMENT_NODE){
+        printf("\n"); PRINT_INDENT(indent); printf(" ELSE\n");
+        ast_print_recurse(n->if_else_stmt.else_stmt, indent + 1, level);
+    }
+    PRINT_INDENT(indent); printf(" END_IF)\n");
     break;
   }
 
+  /*
   case CONSTRUCTOR_NODE:
   {
     n->constructor.type_info = va_arg(args, Type *);
