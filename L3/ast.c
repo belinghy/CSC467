@@ -218,6 +218,7 @@ void ast_print_recurse(node *n, int indent, int level) {
   }
   
   case DECLARATION_WITH_INIT_NODE:
+  case DECLARATION_CONST_NODE: /* No need to print const */
   {
     PRINT_INDENT(indent); printf("(DECLARATION ");
     printf("%s %s ", n->declaration_init.id,
@@ -226,18 +227,6 @@ void ast_print_recurse(node *n, int indent, int level) {
     printf(")\n");
     break;
   }
-
-  /*
-  case DECLARATION_CONST_NODE:
-  {
-    Type *type_info = va_arg(args, Type *);
-    type_info->is_const = true;
-    n->declaration_const.type_info = type_info;
-    n->declaration_const.id = va_arg(args, char *);
-    n->declaration_const.expression = va_arg(args, node *);
-    break;
-  }
-  */
 
   case ASSIGNMENT_NODE:
   {

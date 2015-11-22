@@ -2,6 +2,7 @@
   int x;
   int y;
   int z = 3 * 12 + 4;
+  const bool w = (1 > (12 + 2));
   x = (1 + 2) * 5;
   y = 5;
   x = x + y;
