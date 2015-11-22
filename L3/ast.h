@@ -1,8 +1,15 @@
 
 #ifndef AST_H_
 #define AST_H_ 1
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
+#include <unordered_map>
 #include <stdarg.h>
+
+#include "symbol.h"
+#include "common.h"
 
 // Dummy node just so everything compiles, create your own node/nodes
 //
@@ -18,22 +25,7 @@ struct node_;
 typedef struct node_ node;
 extern node *ast;
 
-struct TypeStruct;
-typedef struct TypeStruct Type;
 
-struct TypeStruct {
-   enum BasicType{
-   INT,
-   FLOAT,
-   BOOLEAN,
-   ANY
-   };
-   
-   BasicType basic_type = ANY;
- 
-   int length = 1;
-   bool is_const = false;
-};
 
 typedef enum {
     SCOPE_NODE,
@@ -70,6 +62,7 @@ struct node_ {
     struct {
       node *declarations;
       node *statements;
+      SymbolTable *symbols;
     } scope;
 
     struct {

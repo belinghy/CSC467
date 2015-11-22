@@ -48,7 +48,22 @@ extern int dumpAST;
 extern int dumpSymbols;
 extern int dumpInstructions;
 
+struct TypeStruct;
+typedef struct TypeStruct Type;
 
+struct TypeStruct {
+   enum BasicType{
+   INT,
+   FLOAT,
+   BOOLEAN,
+   ANY
+   };
+   
+   BasicType basic_type = ANY;
+ 
+   int length = 1;
+   bool is_const = false;
+};
 
 
 #endif
