@@ -156,6 +156,144 @@ node *ast_allocate(node_kind kind, ...) {
 }
 
 void ast_free(node *ast) {
+
+  if (ast == NULL) return;
+
+  switch(ast->kind) {
+  printf("%d", ast->kind);
+  printf("\n");
+
+  case SCOPE_NODE:
+  {
+    ast_free(ast->scope.declarations);
+    ast_free(ast->scope.statements);
+    // free symbol table
+    if (ast->scope.symbols != NULL) {
+      delete ast->scope.symbols;
+    }
+    break;
+  }
+
+  case DECLARATIONS_NODE:
+  {
+    ast_free(ast->declarations.declarations);
+    ast_free(ast->declarations.declaration);
+    break;
+  }
+
+  case STATEMENTS_NODE:
+  {
+    ast_free(ast->statements.statements);
+    ast_free(ast->statements.statement);
+    break;
+  }
+
+  case DECLARATION_NODE:
+  {
+    free(ast->declaration.type_info); ast->declaration.type_info = NULL;
+    free(ast->declaration.id);
+    break;
+  }
+
+  case DECLARATION_WITH_INIT_NODE:
+  {
+    ast_free(ast->declaration_init.expression);
+    free(ast->declaration_init.type_info); ast->declaration_init.type_info = NULL;
+    free(ast->declaration_init.id);
+    break;
+  }
+
+  case DECLARATION_CONST_NODE:
+  {
+    ast_free(ast->declaration_const.expression);
+    free(ast->declaration_const.type_info); ast->declaration_const.type_info = NULL;
+    free(ast->declaration_const.id); // = va_arg(args, char *);
+    break;
+  }
+
+  case ASSIGNMENT_NODE:
+  {
+    // ast->assignment_stmt.op = va_arg(args, int);
+    ast_free(ast->assignment_stmt.left);
+    ast_free(ast->assignment_stmt.right);
+    break;
+  }
+
+  case IF_WITH_ELSE_STATEMENT_NODE:
+  {
+    ast_free(ast->if_else_stmt.expression);
+    ast_free(ast->if_else_stmt.then_stmt);
+    ast_free(ast->if_else_stmt.else_stmt);
+    break;
+  }
+
+  case IF_STATEMENT_NODE:
+  {
+    ast_free(ast->if_stmt.expression);
+    ast_free(ast->if_stmt.then_stmt);
+    break;
+  }
+
+  case CONSTRUCTOR_NODE:
+  {
+    ast_free(ast->constructor.arguments);
+    free(ast->constructor.type_info); ast->constructor.type_info = NULL;
+    break;
+  }
+
+  case FUNCTION_NODE:
+  {
+    // ast->function.func_id = va_arg(args, int);
+    ast_free(ast->function.arguments);
+    break;
+  }
+
+  case UNARY_EXPRESSION_NODE:
+  {
+    // ast->unary_expr.op = va_arg(args, int);
+    ast_free(ast->unary_expr.right);
+    break;
+  }
+
+  case BINARY_EXPRESSION_NODE:
+  { 
+    // ast->binary_expr.op = va_arg(args, int);
+    ast_free(ast->binary_expr.left);
+    ast_free(ast->binary_expr.right);
+    break;
+  }
+
+  case BOOL_NODE:
+    // ast->bool_literal.value = (va_arg(args, int) == 1) ? true : false;
+    break;
+
+  case INT_NODE:
+    // ast->int_literal.value = va_arg(args, int);
+    break;
+
+  case FLOAT_NODE:
+    // ast->float_literal.value = (float) va_arg(args, double);
+    break;
+
+  case VAR_NODE:
+  {  
+    free(ast->variable.identifier);// = va_arg(args, char *);
+    free(ast->variable.type_info); ast->variable.type_info = NULL;
+    // ast->variable.index = va_arg(args, int);
+    break;
+  }
+
+  case ARGUMENTS_NODE:
+  {
+    ast_free(ast->arguments.arguments);
+    ast_free(ast->arguments.argument);
+    break;
+  }
+
+  default: break;
+  }
+
+  free(ast); ast = NULL;
 }
 
 void ast_print(node *ast) {
