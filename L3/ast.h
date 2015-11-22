@@ -29,10 +29,9 @@ struct TypeStruct {
    ANY
    };
    
-   BasicType basic_type = ANY;
- 
-   int length = 1;
-   bool is_const = false;
+   BasicType basic_type;
+   int length;
+   bool is_const;
 };
 
 typedef enum {

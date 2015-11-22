@@ -61,7 +61,6 @@ enum {
 // defines the yyval union
 %union {
   int as_int;
-  bool as_bool;
   int as_vec;
   float as_float;
   char *as_str;
@@ -86,8 +85,6 @@ enum {
 %token <as_float> FLOAT_C
 %token <as_int>   INT_C
 %token <as_str>   ID
-%token <as_bool>  TRUE_C
-%token <as_bool>  FALSE_C
 
 // operator precdence
 %left     OR                        // 7
@@ -240,6 +237,8 @@ type
         yTRACE("type -> INT_T \n")
         Type *type = (Type *) malloc(sizeof(Type));
         type->basic_type = Type::INT;
+        type->length = 1;
+        type->is_const = false;
         $$ = type;
       }
   | IVEC_T
@@ -247,6 +246,8 @@ type
         yTRACE("type -> IVEC_T \n")
         Type *type = (Type *) malloc(sizeof(Type));
         type->basic_type = Type::INT;
+        type->length = $1;
+        type->is_const = false;
         $$ = type;
       }
   | BOOL_T
@@ -254,6 +255,8 @@ type
         yTRACE("type -> BOOL_T \n") 
         Type *type = (Type *) malloc(sizeof(Type));
         type->basic_type = Type::BOOLEAN;
+        type->length = 1;
+        type->is_const = false;
         $$ = type;
       }
   | BVEC_T
@@ -261,6 +264,8 @@ type
         yTRACE("type -> BVEC_T \n") 
         Type *type = (Type *) malloc(sizeof(Type));
         type->basic_type = Type::BOOLEAN;
+        type->length = $1;
+        type->is_const = false;
         $$ = type;
       }
   | FLOAT_T
@@ -268,6 +273,8 @@ type
         yTRACE("type -> FLOAT_T \n") 
         Type *type = (Type *) malloc(sizeof(Type));
         type->basic_type = Type::FLOAT;
+        type->length = 1;
+        type->is_const = false;
         $$ = type;
       }
   | VEC_T
@@ -275,6 +282,8 @@ type
         yTRACE("type -> VEC_T \n") 
         Type *type = (Type *) malloc(sizeof(Type));
         type->basic_type = Type::FLOAT;
+        type->length = $1;
+        type->is_const = false;
         $$ = type;
       }
   ;
@@ -413,6 +422,8 @@ variable
         yTRACE("variable -> ID \n");
         Type *type = (Type *) malloc(sizeof(Type));
         type->length = 1;
+        type->basic_type = Type::ANY;
+        type->is_const = false;
         $$ = ast_allocate(VAR_NODE, $1, type, -1, yyline );
       }
   | ID '[' INT_C ']' %prec '['
@@ -420,6 +431,8 @@ variable
         yTRACE("variable -> ID [ INT_C ] \n")
         Type *type = (Type *) malloc(sizeof(Type));
         type->length = -1;
+        type->basic_type = Type::ANY;
+        type->is_const = false;
         $$ = ast_allocate(VAR_NODE, $1, type, $3, yyline );
       }
   ;

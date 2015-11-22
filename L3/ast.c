@@ -363,19 +363,41 @@ char *get_function(int id){ //TODO: get enums declared here?
 }
 
 char *get_type(Type *type) {
-  switch (type->basic_type) {
-    case Type::INT:
-      return "int";
-      break;
-    case Type::FLOAT:
-      return "float";
-      break;
-    case Type::BOOLEAN:
-      return "bool";
-      break;
-    default:
-      return "ANY-TYPE";
-      break;
+  if (type->length == 1) {
+    switch (type->basic_type) {
+      case Type::INT:
+        return "int";
+        break;
+      case Type::FLOAT:
+        if (type->length == 1) {}
+        return "float";
+        break;
+      case Type::BOOLEAN:
+        return "bool";
+        break;
+      default:
+        return "ANY-TYPE";
+        break;
+    }
+  } else {
+    switch (type->basic_type) {
+      char tmpstr[6];
+      case Type::INT:
+        sprintf(tmpstr, "ivec%d", type->length);
+        return tmpstr;
+        break;
+      case Type::FLOAT:
+        sprintf(tmpstr, "vec%d", type->length);
+        return tmpstr;
+        break;
+      case Type::BOOLEAN:
+        sprintf(tmpstr, "bvec%d", type->length);
+        return tmpstr;
+        break;
+      default:
+        return "ANY-TYPE-VECTOR";
+        break;
+    }
   }
 }
 
