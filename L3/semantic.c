@@ -283,6 +283,7 @@ void binary_check_type(Type *type_out, int line, int op, Type *type1, Type *type
     return;
   }
 
+  /* Argument type check */
   switch (op) {
     case OR:
     case AND:
@@ -296,18 +297,14 @@ void binary_check_type(Type *type_out, int line, int op, Type *type1, Type *type
         errorOccurred = 1;
         return;
       } 
-
-      if (type1->length != type2->length){
-        fprintf(errorFile, "ERROR: line %d, lengths of %s operator arguments do not match\n", line, get_operator(op));
-        errorOccurred = 1;
-        return;
-      }
-
-      set_type(type1, type_out);
       break;
     case EQ:
     case NEQ:
-      break;
+    case '+':
+    case '-':
+    case '*':
+    case '/':
+    case '^':
     case '>':
     case '<':
     case LEQ:
@@ -323,22 +320,94 @@ void binary_check_type(Type *type_out, int line, int op, Type *type1, Type *type
         return;
       } 
 
+      if (type1->basic_type != type2->basic_type){
+        fprintf(errorFile, "ERROR: line %d, arguments of %s operator do not have same basic type\n", line, get_operator(op));
+        errorOccurred = 1;
+        return;
+      } 
+      break;
+    default:
+      break;
+  }
+  
+  /* Length check */
+  switch (op) {
+    case OR:
+    case AND:
+      if (type1->length != type2->length){
+        fprintf(errorFile, "ERROR: line %d, lengths of %s operator arguments do not match\n", line, get_operator(op));
+        errorOccurred = 1;
+        return;
+      }
+      break;
+    case EQ:
+    case NEQ:
+    case '+':
+    case '-':
+    case '/':
+    case '^':
+      if (type1->length != type2->length){
+        fprintf(errorFile, "ERROR: line %d, lengths of %s operator arguments do not match\n", line, get_operator(op));
+        errorOccurred = 1;
+        return;
+      }
+      break;
+    case '>':
+    case '<':
+    case LEQ:
+    case GEQ:
       if (!is_scalar(type1) || !is_scalar(type2)){
         fprintf(errorFile, "ERROR: line %d, arguments of %s operator must be scalar\n", line, get_operator(op));
         errorOccurred = 1;
         return;
       }
-      type_out->length = 1;
+      break;
+    case '*': 
+      if (!is_scalar(type1) && !is_scalar(type2) && (type1->length != type2->length)){
+        fprintf(errorFile, "ERROR: line %d, lengths of %s operator vector arguments do not match\n", line, get_operator(op));
+        errorOccurred = 1;
+        return;
+      }
+      break;
+    default:
+      break;
+  }
+  
+  /* Set results */
+  switch (op) {
+    case OR:
+    case AND:
+      set_type(type1, type_out);
+      break;
+    case EQ:
+    case NEQ:
+      type_out->length = type1->length;
       type_out->basic_type = Type::BOOLEAN;
       break;
     case '+':
     case '-':
-    case '*':
     case '/':
     case '^':
-    case '!':
-    case UMINUS:
-    case '=':
+      type_out->length = type1->length;
+      type_out->basic_type = type1->basic_type;
+      break;
+    case '>':
+    case '<':
+    case LEQ:
+    case GEQ:
+      type_out->length = 1;
+      type_out->basic_type = Type::BOOLEAN;
+      break;
+    case '*':
+      if(!is_scalar(type1)){
+        type_out->length = type1->length;
+      } else if(!is_scalar(type2)){
+        type_out->length = type2->length;
+      } else {
+        type_out->length = 1;
+      }
+      type_out->basic_type = type1->basic_type;
+      break;
     default:
       break;
   }
