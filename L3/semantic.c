@@ -9,6 +9,7 @@ bool type_check(Type *info1, Type *info2);
 int semantic_check_recurse(node *n, SymbolTable *prev_sym);
 void unary_check_type(Type *type_out, int line, int op, Type *type_in);
 void binary_check_type(Type *type_out, int line, int op, Type *type1, Type *type2);
+void function_check_args(int line, int func_id, Type *ret_type, Type *arg_type, int num_args);
 void set_type(Type *src, Type *dst);
 
 int semantic_check( node *ast) {
@@ -201,12 +202,28 @@ int semantic_check_recurse(node *n, SymbolTable *s){
     }
     case CONSTRUCTOR_NODE:
     {
-      //TODO: check number and type of arguments
+      semantic_check_recurse(n->constructor.arguments, s);
+      if((n->constructor.arguments) == NULL){
+        if(n->type_info->length != 0){
+          fprintf(errorFile, "ERROR: line %d: 0 input arguments, expecting %d\n", n->line, n->type_info->length);
+          errorOccurred = 1;
+        }
+      } else {
+        if(n->type_info->length != (n->constructor.arguments)->arguments.num_args){ /* Number of arguments check */
+          fprintf(errorFile, "ERROR: line %d: %d input arguments, expecting %d\n", n->line, (n->constructor.arguments)->arguments.num_args, n->type_info->length);
+          errorOccurred = 1;
+        } else if((n->constructor.arguments)->type_info->basic_type != n->type_info->basic_type  /* Arguments type check - ANY type is allowed*/
+                  && ((n->constructor.arguments)->type_info->basic_type != Type::ANY)){
+          fprintf(errorFile, "ERROR: line %d: incorrect argument type\n", n->line);
+          errorOccurred = 1;
+        }
+      }
       break;
     }
     case FUNCTION_NODE:
     {
-      //TODO: check number and type of arguments
+      semantic_check_recurse(n->function.arguments, s);
+      function_check_args(n->line, n->function.func_id, n->type_info, (n->function.arguments)->type_info, (n->function.arguments)->arguments.num_args);
       break;
     }
     case UNARY_EXPRESSION_NODE:
@@ -235,9 +252,9 @@ int semantic_check_recurse(node *n, SymbolTable *s){
 
       /* Getting type from declared variable */
       set_type(attr->type, n->type_info);
-      //char buf[10];
-      //get_type(n->type_info, buf);
-      //printf("HELLOO set var %s to type %s \n", n->variable.identifier, buf);
+      /*char buf[10];
+      get_type(n->type_info, buf);
+      printf("HELLOO set var %s to type %s \n", n->variable.identifier, buf);*/
 
       /* Checking index is not out of bounds */
       if((n->type_info)->length <= n->variable.index){
@@ -248,7 +265,24 @@ int semantic_check_recurse(node *n, SymbolTable *s){
     }
     case ARGUMENTS_NODE:
     {
-      //TODO: get number of arguments
+      semantic_check_recurse(n->arguments.arguments, s);
+      semantic_check_recurse(n->arguments.argument, s);
+      if((n->arguments.arguments) == NULL){ /* no arguments child */
+         n->arguments.num_args = 1; /* Add one argument for the single argument */
+         set_type((n->arguments.argument)->type_info, n->type_info); /* use the type of the single argument */
+
+      } else {
+         n->arguments.num_args = (n->arguments.arguments)->arguments.num_args + 1; /* Plus one for the single argument */
+          if(type_check((n->arguments.arguments)->type_info, (n->arguments.argument)->type_info) /* Arguments are not the same type (excepting the ANY type) */
+             && (n->arguments.arguments)->type_info->basic_type != Type::ANY){
+            fprintf(errorFile, "ERROR: line %d: incorrect argument type\n", n->line);
+            errorOccurred = 1;
+            n->type_info->basic_type = Type::ANY; /* Use any type from now on */
+            n->type_info->length = -1;
+          } else {
+            set_type((n->arguments.arguments)->type_info, n->type_info); /* Pass up the arguments type*/
+          }
+      }
       break;
     }
     default:
@@ -279,6 +313,56 @@ bool is_arithmetic(Type *type){
 
 bool is_scalar(Type *type){
   return(type->length == 1);
+}
+
+/* Checks build-in function arguments match function specifications, and sets return type
+ * Assumes same type for all function arguments
+ */
+void function_check_args(int line, int func_id, Type *ret_type, Type *arg_type, int num_args){
+  switch(func_id){
+    case 0: //DP3
+    if(num_args != 2){
+      fprintf(errorFile, "ERROR: line %d, %d input arguments for %s function, expecting %d\n", line, num_args, get_function(func_id), 2);
+      errorOccurred = 1;
+    } else if(arg_type->basic_type != Type::FLOAT && arg_type->basic_type != Type::INT && arg_type->basic_type != Type::ANY){
+      fprintf(errorFile, "ERROR: line %d, incorrect argument type\n", line);
+      errorOccurred = 1;
+    } else if(arg_type->length != 3 && arg_type->length != 4 && arg_type->basic_type != Type::ANY){
+      fprintf(errorFile, "ERROR: line %d, incorrect argument type\n", line);
+      errorOccurred = 1;
+    }
+    ret_type->basic_type = arg_type->basic_type;
+    ret_type->length = 1;
+    break;
+    case 1: //LIT
+    if(num_args != 1){
+      fprintf(errorFile, "ERROR: line %d, %d input arguments for %s function, expecting %d\n", line, num_args, get_function(func_id), 1);
+      errorOccurred = 1;
+    } else if(arg_type->basic_type != Type::FLOAT && arg_type->basic_type != Type::ANY){
+      fprintf(errorFile, "ERROR: line %d, incorrect argument type\n", line);
+      errorOccurred = 1;
+    } else if(arg_type->length != 4 && arg_type->basic_type != Type::ANY){
+      fprintf(errorFile, "ERROR: line %d, incorrect argument type\n", line);
+      errorOccurred = 1;
+    } 
+    ret_type->basic_type = Type::FLOAT;
+    ret_type->length = 4;
+    break;
+    case 2: //RSQ
+    if(num_args != 1){
+      fprintf(errorFile, "ERROR: line %d, %d input arguments for %s function, expecting %d\n", line, num_args, get_function(func_id), 1);
+      errorOccurred = 1;
+    } else if(arg_type->basic_type != Type::FLOAT && arg_type->basic_type != Type::INT && arg_type->basic_type != Type::ANY){
+      fprintf(errorFile, "ERROR: line %d, incorrect argument type\n", line);
+      errorOccurred = 1;
+    } else if(arg_type->length != 1 && arg_type->basic_type != Type::ANY){
+      fprintf(errorFile, "ERROR: line %d, incorrect argument type\n", line);
+      errorOccurred = 1;
+    }
+    ret_type->basic_type = Type::FLOAT;
+    ret_type->length = 1;
+    break;
+  }
 }
 
 /* Checks the input type of the unary operator and modifies the the output type accordingly 
