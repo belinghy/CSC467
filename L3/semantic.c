@@ -188,16 +188,36 @@ int semantic_check_recurse(node *n, SymbolTable *s){
       //TODO: check type
       semantic_check_recurse(n->assignment_stmt.left, s);
       semantic_check_recurse(n->assignment_stmt.right, s);
+
+      if (n->assignment_stmt.left->type_info->is_const) {
+        fprintf(errorFile, "ERROR: line %d: const variable, %s, cannot be reassigned\n", n->line, n->assignment_stmt.left->variable.identifier);
+        errorOccurred = true;
+      }
+
+      if (type_check((n->assignment_stmt.left)->type_info, (n->assignment_stmt.right)->type_info)) {
+        fprintf(errorFile, "ERROR: line %d: type mismatch in assignment of variable %s\n", n->line, n->assignment_stmt.left->variable.identifier);
+        errorOccurred = true;
+      }
       break;
     }
     case IF_WITH_ELSE_STATEMENT_NODE:
     {
-      //TODO: check type of expr is boolean
+      if (n->if_else_stmt.expression->type_info->basic_type != Type::BOOLEAN) {
+        char buf[20];
+        get_type(n->if_else_stmt.expression->type_info, buf);
+        fprintf(errorFile, "ERROR: line %d: expected boolean in IF expression, but got %s instead\n", n->if_else_stmt.expression->line, buf);
+        errorOccurred = true;
+      }
       break;
     }
     case IF_STATEMENT_NODE:
     {
-      //TODO: check type of expr is boolean
+      if (n->if_stmt.expression->type_info->basic_type != Type::BOOLEAN) {
+        char buf[20];
+        get_type(n->if_stmt.expression->type_info, buf);
+        fprintf(errorFile, "ERROR: line %d: expected boolean in IF expression, but got %s instead\n", n->if_stmt.expression->line, buf);
+        errorOccurred = true;
+      }
       break;
     }
     case CONSTRUCTOR_NODE:
