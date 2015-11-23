@@ -16,10 +16,7 @@ public:
 };
 
 class SymbolTable{
-private:
-  std::unordered_map<std::string, SymAttr> htmap;
-  SymbolTable *prev_scope; /* enclosing scope */
-  
+private:  
   bool exists(std::string name){
     if(htmap.find(name) == htmap.end()) {
         return false;
@@ -30,6 +27,8 @@ private:
   }
 
 public:
+  std::unordered_map<std::string, SymAttr> htmap;
+  SymbolTable *prev_scope; /* enclosing scope */
 
   /* 0 - successful put, 1 - redeclaration error */
   int put(char *name, Type *type) {

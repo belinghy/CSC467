@@ -11,7 +11,6 @@
 #define PRINT_INDENT(indent) { for(int i = 0; i < indent; i++) { printf("    "); }}
 
 node *ast_get_child(node *n, int child_index);
-void ast_print_node(node *n);
 void ast_print_recurse(node *n, int indent, int level);
 
 node *ast = NULL;
@@ -28,6 +27,8 @@ node *ast_allocate(node_kind kind, ...) {
   type->length = -1;
   type->basic_type = Type::ANY;
   type->is_const = false;
+  type->readonly = false;
+  type->writeonly = false;
   ast->type_info = type;
 
   va_start(args, kind); 
@@ -144,6 +145,8 @@ node *ast_allocate(node_kind kind, ...) {
     type->length = 1;
     type->basic_type = Type::BOOLEAN;
     type->is_const = true;
+    type->readonly = true;
+    type->writeonly = false;
     ast->type_info = type;
     break;
   }
@@ -156,6 +159,8 @@ node *ast_allocate(node_kind kind, ...) {
     type->length = 1;
     type->basic_type = Type::INT;
     type->is_const = true;
+    type->readonly = true;
+    type->writeonly = false;
     ast->type_info = type;
     break;
   }
@@ -168,6 +173,8 @@ node *ast_allocate(node_kind kind, ...) {
     type->length = 1;
     type->basic_type = Type::FLOAT;
     type->is_const = true;
+    type->readonly = true;
+    type->writeonly = false;
     ast->type_info = type;
     break;
   }
@@ -211,6 +218,23 @@ void ast_free(node *ast) {
     ast_free(ast->scope.statements);
     // free symbol table
     if (ast->scope.symbols != NULL) {
+      if (ast->scope.symbols->prev_scope == NULL) {
+        if (ast->scope.symbols->htmap["gl_FragColor"].type != NULL) {
+          free(ast->scope.symbols->htmap["gl_FragColor"].type);
+          free(ast->scope.symbols->htmap["gl_FragDepth"].type);
+          free(ast->scope.symbols->htmap["gl_FragCoord"].type);
+          free(ast->scope.symbols->htmap["gl_TexCoord"].type);
+          free(ast->scope.symbols->htmap["gl_Color"].type);
+          free(ast->scope.symbols->htmap["gl_Secondary"].type);
+          free(ast->scope.symbols->htmap["gl_FogFragCoord"].type);
+          free(ast->scope.symbols->htmap["gl_Light_Half"].type);
+          free(ast->scope.symbols->htmap["gl_Light_Ambient"].type);
+          free(ast->scope.symbols->htmap["gl_Material_Shininess"].type);
+          free(ast->scope.symbols->htmap["env1"].type);
+          free(ast->scope.symbols->htmap["env2"].type);
+          free(ast->scope.symbols->htmap["env3"].type);
+        }
+      }
       delete ast->scope.symbols;
     }
     break;
@@ -434,7 +458,9 @@ void ast_print_recurse(node *n, int indent, int level) {
 
   case ASSIGNMENT_NODE:
   {
-    PRINT_INDENT(indent); printf("(ASSIGN ");
+    char buf[20];
+    get_type(n->type_info, buf);
+    PRINT_INDENT(indent); printf("(ASSIGN %s ", buf);
     ast_print_recurse(n->assignment_stmt.left, indent, level);
     printf(" ");
     ast_print_recurse(n->assignment_stmt.right, indent, level);
@@ -531,7 +557,7 @@ void ast_print_recurse(node *n, int indent, int level) {
 
   case VAR_NODE:
   {
-    if ((n->type_info)->length == 1) {
+    if (n->variable.index == -1) {
       printf("%s", n->variable.identifier);
     } else {
       char buf[20];

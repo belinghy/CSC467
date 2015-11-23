@@ -239,6 +239,8 @@ type
         type->basic_type = Type::INT;
         type->length = 1;
         type->is_const = false;
+        type->readonly = false;
+        type->writeonly = false;
         $$ = type;
       }
   | IVEC_T
@@ -248,6 +250,8 @@ type
         type->basic_type = Type::INT;
         type->length = $1;
         type->is_const = false;
+        type->readonly = false;
+        type->writeonly = false;
         $$ = type;
       }
   | BOOL_T
@@ -257,6 +261,8 @@ type
         type->basic_type = Type::BOOLEAN;
         type->length = 1;
         type->is_const = false;
+        type->readonly = false;
+        type->writeonly = false;
         $$ = type;
       }
   | BVEC_T
@@ -266,6 +272,8 @@ type
         type->basic_type = Type::BOOLEAN;
         type->length = $1;
         type->is_const = false;
+        type->readonly = false;
+        type->writeonly = false;
         $$ = type;
       }
   | FLOAT_T
@@ -275,6 +283,8 @@ type
         type->basic_type = Type::FLOAT;
         type->length = 1;
         type->is_const = false;
+        type->readonly = false;
+        type->writeonly = false;
         $$ = type;
       }
   | VEC_T
@@ -284,6 +294,8 @@ type
         type->basic_type = Type::FLOAT;
         type->length = $1;
         type->is_const = false;
+        type->readonly = false;
+        type->writeonly = false;
         $$ = type;
       }
   ;
