@@ -46,7 +46,7 @@
   }
   y = 34;*/
 
-  /* Binary op tests */
+  /* Binary op tests  
   ivec2 w;
   int q;
   bool z;
@@ -67,5 +67,14 @@
   a_float = !a_float;
   a_vec3 = -a_vec3;
   z = -z;
-  a_float = !a_float;
+  a_float = !a_float; */
+
+  /* argument test */
+   ivec3 w;
+   int q;
+   bool z;
+   z = 2;
+   z = dp3(w, w, w);
+   z = dp3(q, w);
+   z = q * w;
 }
