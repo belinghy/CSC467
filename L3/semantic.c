@@ -10,6 +10,7 @@ int semantic_check_recurse(node *n, SymbolTable *prev_sym);
 void unary_check_type(Type *type_out, int line, int op, Type *type_in);
 void binary_check_type(Type *type_out, int line, int op, Type *type1, Type *type2);
 void set_type(Type *src, Type *dst);
+void insert_predefined_variables(SymbolTable *s);
 
 int semantic_check( node *ast) {
 
@@ -118,6 +119,7 @@ int semantic_check( node *ast) {
   };
 */
 
+SymbolTable *root;
 int semantic_check_recurse(node *n, SymbolTable *s){
     if(n == NULL){
       return 1;
@@ -128,6 +130,10 @@ int semantic_check_recurse(node *n, SymbolTable *s){
     switch(n->kind) {
     case SCOPE_NODE:
       n->scope.symbols = new SymbolTable(s);
+      if (s == NULL) {
+        root = n->scope.symbols;
+        insert_predefined_variables(root);
+      }
       semantic_check_recurse(n->scope.declarations, n->scope.symbols);
       semantic_check_recurse(n->scope.statements, n->scope.symbols);
       break;
@@ -188,15 +194,43 @@ int semantic_check_recurse(node *n, SymbolTable *s){
       semantic_check_recurse(n->assignment_stmt.left, s);
       semantic_check_recurse(n->assignment_stmt.right, s);
 
+      // readonly variables cannot be assigned
+      if (root->lookup(n->assignment_stmt.left->variable.identifier)->type->readonly) {
+        fprintf(errorFile, "ERROR: line %d: readonly variable, %s, cannot be assigned\n", n->line, n->assignment_stmt.left->variable.identifier);
+        errorOccurred = true;
+      }
+
+      // readonly and const can only be assigned to const
+      if (n->assignment_stmt.left->type_info->is_const &&
+          !(n->assignment_stmt.right->type_info->is_const)) {
+        fprintf(errorFile, "ERROR: line %d: non-const variable cannot be assigned to a const variable\n", n->line);
+        errorOccurred = true;
+      }
+
+      // const variable reassignment not allowed
       if (n->assignment_stmt.left->type_info->is_const) {
         fprintf(errorFile, "ERROR: line %d: const variable, %s, cannot be reassigned\n", n->line, n->assignment_stmt.left->variable.identifier);
         errorOccurred = true;
       }
 
-      if (type_check((n->assignment_stmt.left)->type_info, (n->assignment_stmt.right)->type_info)) {
+      // type mismatch in assignment for scalar
+      if (n->assignment_stmt.left->type_info->basic_type != n->assignment_stmt.right->type_info->basic_type) {
+        fprintf(errorFile, "ERROR: line %d: type mismatch in assignment of variable %s\n", n->line, n->assignment_stmt.left->variable.identifier);
+        errorOccurred = true;
+      } else {
+        if (n->assignment_stmt.left->type_info->length != n->assignment_stmt.right->type_info->length && 
+            n->assignment_stmt.left->variable.index == -1) {
+          fprintf(errorFile, "ERROR: line %d: array dimension mismatch in assignment of variable %s\n", n->line, n->assignment_stmt.left->variable.identifier);
+          errorOccurred = true;
+        }
+      }
+      /*
+      if (type_check((n->assignment_stmt.left)->type_info, (n->assignment_stmt.right)->type_info) && (n->assignment_stmt.left->index == -1)) {
         fprintf(errorFile, "ERROR: line %d: type mismatch in assignment of variable %s\n", n->line, n->assignment_stmt.left->variable.identifier);
         errorOccurred = true;
       }
+      */
+
       break;
     }
     case IF_WITH_ELSE_STATEMENT_NODE:
@@ -475,4 +509,124 @@ void binary_check_type(Type *type_out, int line, int op, Type *type1, Type *type
     default:
       break;
   }
+}
+
+void insert_predefined_variables(SymbolTable *s) {
+  // gl_FragColor - writeonly
+  Type *gl_FragColor = (Type *) malloc(sizeof(Type));
+  gl_FragColor->length = 4;
+  gl_FragColor->basic_type = Type::FLOAT;
+  gl_FragColor->is_const = false;
+  gl_FragColor->readonly = false;
+  gl_FragColor->writeonly = true;
+  s->put("gl_FragColor", gl_FragColor);
+
+  // gl_FragDepth - writeonly
+  Type *gl_FragDepth = (Type *) malloc(sizeof(Type));
+  gl_FragDepth->length = 1;
+  gl_FragDepth->basic_type = Type::BOOLEAN;
+  gl_FragDepth->is_const = false;
+  gl_FragDepth->readonly = false;
+  gl_FragDepth->writeonly = true;
+  s->put("gl_FragDepth", gl_FragDepth);
+
+  // gl_FragCoord - writeonly
+  Type *gl_FragCoord = (Type *) malloc(sizeof(Type));
+  gl_FragCoord->length = 4;
+  gl_FragCoord->basic_type = Type::FLOAT;
+  gl_FragCoord->is_const = false;
+  gl_FragCoord->readonly = false;
+  gl_FragCoord->writeonly = true;
+  s->put("gl_FragCoord", gl_FragCoord);
+
+  // gl_TexCoord - readonly
+  Type *gl_TexCoord = (Type *) malloc(sizeof(Type));
+  gl_TexCoord->length = 4;
+  gl_TexCoord->basic_type = Type::FLOAT;
+  gl_TexCoord->is_const = false;
+  gl_TexCoord->readonly = true;
+  gl_TexCoord->writeonly = false;
+  s->put("gl_TexCoord", gl_TexCoord);
+
+  // gl_Color - readonly
+  Type *gl_Color = (Type *) malloc(sizeof(Type));
+  gl_Color->length = 4;
+  gl_Color->basic_type = Type::FLOAT;
+  gl_Color->is_const = false;
+  gl_Color->readonly = true;
+  gl_Color->writeonly = false;
+  s->put("gl_Color", gl_Color);
+
+  // gl_Secondary - readonly
+  Type *gl_Secondary = (Type *) malloc(sizeof(Type));
+  gl_Secondary->length = 4;
+  gl_Secondary->basic_type = Type::FLOAT;
+  gl_Secondary->is_const = false;
+  gl_Secondary->readonly = true;
+  gl_Secondary->writeonly = false;
+  s->put("gl_Secondary", gl_Secondary);
+
+  // gl_FogFragCoord - readonly
+  Type *gl_FogFragCoord = (Type *) malloc(sizeof(Type));
+  gl_FogFragCoord->length = 4;
+  gl_FogFragCoord->basic_type = Type::FLOAT;
+  gl_FogFragCoord->is_const = false;
+  gl_FogFragCoord->readonly = true;
+  gl_FogFragCoord->writeonly = false;
+  s->put("gl_FogFragCoord", gl_FogFragCoord);
+
+  // gl_Light_Half - readonly const
+  Type *gl_Light_Half = (Type *) malloc(sizeof(Type));
+  gl_Light_Half->length = 4;
+  gl_Light_Half->basic_type = Type::FLOAT;
+  gl_Light_Half->is_const = true;
+  gl_Light_Half->readonly = true;
+  gl_Light_Half->writeonly = false;
+  s->put("gl_Light_Half", gl_Light_Half);
+
+  // gl_Light_Ambient - readonly const
+  Type *gl_Light_Ambient = (Type *) malloc(sizeof(Type));
+  gl_Light_Ambient->length = 4;
+  gl_Light_Ambient->basic_type = Type::FLOAT;
+  gl_Light_Ambient->is_const = true;
+  gl_Light_Ambient->readonly = true;
+  gl_Light_Ambient->writeonly = false;
+  s->put("gl_Light_Ambient", gl_Light_Ambient);
+
+  // gl_Material_Shininess - readonly const
+  Type *gl_Material_Shininess = (Type *) malloc(sizeof(Type));
+  gl_Material_Shininess->length = 4;
+  gl_Material_Shininess->basic_type = Type::FLOAT;
+  gl_Material_Shininess->is_const = true;
+  gl_Material_Shininess->readonly = true;
+  gl_Material_Shininess->writeonly = false;
+  s->put("gl_Material_Shininess", gl_Material_Shininess);
+
+  // env1 - readonly const
+  Type *env1 = (Type *) malloc(sizeof(Type));
+  env1->length = 4;
+  env1->basic_type = Type::FLOAT;
+  env1->is_const = true;
+  env1->readonly = true;
+  env1->writeonly = false;
+  s->put("env1", env1);
+
+  // env2 - readonly const
+  Type *env2 = (Type *) malloc(sizeof(Type));
+  env2->length = 4;
+  env2->basic_type = Type::FLOAT;
+  env2->is_const = true;
+  env2->readonly = true;
+  env2->writeonly = false;
+  s->put("env2", env2);
+
+  // env3 - readonly const
+  Type *env3 = (Type *) malloc(sizeof(Type));
+  env3->length = 4;
+  env3->basic_type = Type::FLOAT;
+  env3->is_const = true;
+  env3->readonly = true;
+  env3->writeonly = false;
+  s->put("env3", env3);
+
 }
