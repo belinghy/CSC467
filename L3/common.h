@@ -63,6 +63,8 @@ struct TypeStruct {
  
    int length = 1;
    bool is_const = false;
+   bool readonly = false;
+   bool writeonly = false;
 };
 
 
