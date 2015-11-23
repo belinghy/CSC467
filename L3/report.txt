@@ -1,0 +1,32 @@
+CSC467 Report
+
+Bonuses Attempted
+Report the line number on which the semantic error occured.
+Provide a contextual message that gives extra meaning to the error to help the programmer debug the error.
+
+Approach to AST structure
+Approximately one AST node was used for each non-trivial production rule. Each AST node was implemented as a struct with a union member to hold information unique to each type of node, and several common members to hold information common to multiple types of nodes (such as the type information). Each node contained pointers to its children nodes. We consulted the design of AST for C language [1] in order to come up with the AST structure for miniGLSL. See Type Checking and Declaration Checking for more detail.
+
+Approach to Type/Declaration Checking
+Type and semantic checking was performed in a post-order traversal of the AST tree after it was constructed. 
+
+1) Type Checking
+The type information is stored in each node’s type_info member, where applicable. The type of the parent is inherited from the type of the children during the post-order traversal. When errors cause type to be uncertain, the ANY type is used and propagated to the parent. A structure Type is used to include all type related information: const, read or write-only, length of the vector (where a length of 1 represents a scalar), and basic type.
+
+2) Declaration Checking
+A symbol table implemented with std::unordered_map was used for each scope. The table consists of values of type information keyed by the name of the symbol. Each symbol table is linked to the table of the enclosing scope with a pointer, forming a linked list. This link list of scopes can thus be searched for declarations, allowing local declarations to override global ones. Each new symbol table is created when a scope is entered, and used for all of the scope’s children nodes. Each scope keeps a pointer to its symbol table after the table is created.
+
+3) Miscellaneous
+Argument numbers are checked by adding the number of arguments from the bottom up, and comparing with the pre-defined argument number requirements of the constructors and functions.
+Predefined variables were manually inserted into the symbol table of the program scope at the beginning of semantic analysis.
+
+Breakdown of work 
+Discussion and paired programming was used to design and implement the basic structure of the AST node. After the AST node was constructed, we worked separately but in consultation with each other to write the semantic checking and printing for each node. The code was shared through a Github account.
+
+Challenges faced
+Most of the difficulties we faced comes from the fact that we needed to update our AST structure time after time throughout the lab. Every time when this happens, we needed to modify other sections of the code in order to accommodate the change. In a future attempts, c++ classes may be a better choice for implementing the AST tree. Abstract classes and inheritance would be useful for specifying attributes possessed by a group of nodes.
+
+References
+[1] https://www.cs.utah.edu/flux/flick/current/doc/guts/gutsch6.html
+
+
