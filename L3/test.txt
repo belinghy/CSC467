@@ -64,4 +64,8 @@
   a_float = q + b_float;
   a_float = a_float * b_vec2;
   a_float = a_vec3 * b_vec2;
+  a_float = !a_float;
+  a_vec3 = -a_vec3;
+  z = -z;
+  a_float = !a_float;
 }

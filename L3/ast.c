@@ -642,10 +642,10 @@ char *get_operator(int op) {
       return "/";
     case '^':
       return "^";
-    case '!':
-      return "!";
     case UMINUS:
       return "-";
+    case '!':
+      return "!";
     case '=':
       return "=";
     default:
