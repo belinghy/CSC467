@@ -3,9 +3,12 @@
 #include <string.h>
 
 #include "semantic.h"
+#include "parser.tab.h"
 
 bool type_check(Type *info1, Type *info2);
 int semantic_check_recurse(node *n, SymbolTable *prev_sym);
+void binary_check_type(Type *type_out, int line, int op, Type *type1, Type *type2);
+void set_type(Type *src, Type *dst);
 
 int semantic_check( node *ast) {
 
@@ -118,6 +121,8 @@ int semantic_check_recurse(node *n, SymbolTable *s){
     if(n == NULL){
       return 1;
     }
+   
+    Type *temp_type;
 
     switch(n->kind) {
     case SCOPE_NODE:
@@ -209,10 +214,10 @@ int semantic_check_recurse(node *n, SymbolTable *s){
       break;
     }
     case BINARY_EXPRESSION_NODE:
-    {
-      //TODO: check type of arguments
+      semantic_check_recurse(n->binary_expr.left, s);
+      semantic_check_recurse(n->binary_expr.right, s);
+      binary_check_type(n->type_info, n->line, n->binary_expr.op, (n->binary_expr.left)->type_info, (n->binary_expr.right)->type_info);
       break;
-    }
     //BOOL_NODE,
     //INT_NODE,
     //FLOAT_NODE,
@@ -227,7 +232,10 @@ int semantic_check_recurse(node *n, SymbolTable *s){
       } 
 
       /* Getting type from declared variable */
-      n->type_info = attr->type;
+      set_type(attr->type, n->type_info);
+      //char buf[10];
+      //get_type(n->type_info, buf);
+      //printf("HELLOO set var %s to type %s \n", n->variable.identifier, buf);
 
       /* Checking index is not out of bounds */
       if((n->type_info)->length <= n->variable.index){
@@ -254,5 +262,156 @@ bool type_check(Type *info1, Type *info2) {
     return false;
   } else {
     return true;
+  }
+}
+
+void set_type(Type *src, Type *dst){
+    dst->length = src->length;
+    dst->basic_type = src->basic_type;
+    dst->is_const = src->is_const;
+}
+
+bool is_arithmetic(Type *type){
+  return(type->basic_type == Type::INT || type->basic_type == Type::FLOAT);
+}
+
+bool is_scalar(Type *type){
+  return(type->length == 1);
+}
+
+void binary_check_type(Type *type_out, int line, int op, Type *type1, Type *type2) {
+
+  /* if one or more arguments have type ANY, we also result in type ANY */
+  if((type1->basic_type == Type::ANY) || (type2->basic_type == Type::ANY)){
+    return;
+  }
+
+  /* Argument type check */
+  switch (op) {
+    case OR:
+    case AND:
+      if(type1->basic_type != Type::BOOLEAN){
+        fprintf(errorFile, "ERROR: line %d, argument 1 of %s operator does not have boolean type\n", line, get_operator(op));
+        errorOccurred = 1;
+        return;
+      } 
+      if (type2->basic_type != Type::BOOLEAN){
+        fprintf(errorFile, "ERROR: line %d, argument 2 of %s operator does not have boolean type\n", line, get_operator(op));
+        errorOccurred = 1;
+        return;
+      } 
+      break;
+    case EQ:
+    case NEQ:
+    case '+':
+    case '-':
+    case '*':
+    case '/':
+    case '^':
+    case '>':
+    case '<':
+    case LEQ:
+    case GEQ:
+      if(!is_arithmetic(type1)){
+        fprintf(errorFile, "ERROR: line %d, argument 1 of %s operator does not have arithmetic type\n", line, get_operator(op));
+        errorOccurred = 1;
+        return;
+      } 
+      if (!is_arithmetic(type2)){
+        fprintf(errorFile, "ERROR: line %d, argument 2 of %s operator does not have arithmetic type\n", line, get_operator(op));
+        errorOccurred = 1;
+        return;
+      } 
+
+      if (type1->basic_type != type2->basic_type){
+        fprintf(errorFile, "ERROR: line %d, arguments of %s operator do not have same basic type\n", line, get_operator(op));
+        errorOccurred = 1;
+        return;
+      } 
+      break;
+    default:
+      break;
+  }
+  
+  /* Length check */
+  switch (op) {
+    case OR:
+    case AND:
+      if (type1->length != type2->length){
+        fprintf(errorFile, "ERROR: line %d, lengths of %s operator arguments do not match\n", line, get_operator(op));
+        errorOccurred = 1;
+        return;
+      }
+      break;
+    case EQ:
+    case NEQ:
+    case '+':
+    case '-':
+    case '/':
+    case '^':
+      if (type1->length != type2->length){
+        fprintf(errorFile, "ERROR: line %d, lengths of %s operator arguments do not match\n", line, get_operator(op));
+        errorOccurred = 1;
+        return;
+      }
+      break;
+    case '>':
+    case '<':
+    case LEQ:
+    case GEQ:
+      if (!is_scalar(type1) || !is_scalar(type2)){
+        fprintf(errorFile, "ERROR: line %d, arguments of %s operator must be scalar\n", line, get_operator(op));
+        errorOccurred = 1;
+        return;
+      }
+      break;
+    case '*': 
+      if (!is_scalar(type1) && !is_scalar(type2) && (type1->length != type2->length)){
+        fprintf(errorFile, "ERROR: line %d, lengths of %s operator vector arguments do not match\n", line, get_operator(op));
+        errorOccurred = 1;
+        return;
+      }
+      break;
+    default:
+      break;
+  }
+  
+  /* Set results */
+  switch (op) {
+    case OR:
+    case AND:
+      set_type(type1, type_out);
+      break;
+    case EQ:
+    case NEQ:
+      type_out->length = type1->length;
+      type_out->basic_type = Type::BOOLEAN;
+      break;
+    case '+':
+    case '-':
+    case '/':
+    case '^':
+      type_out->length = type1->length;
+      type_out->basic_type = type1->basic_type;
+      break;
+    case '>':
+    case '<':
+    case LEQ:
+    case GEQ:
+      type_out->length = 1;
+      type_out->basic_type = Type::BOOLEAN;
+      break;
+    case '*':
+      if(!is_scalar(type1)){
+        type_out->length = type1->length;
+      } else if(!is_scalar(type2)){
+        type_out->length = type2->length;
+      } else {
+        type_out->length = 1;
+      }
+      type_out->basic_type = type1->basic_type;
+      break;
+    default:
+      break;
   }
 }
