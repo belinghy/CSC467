@@ -6,7 +6,7 @@
 #include "parser.tab.h"
 
 bool type_check(Type *info1, Type *info2);
-int semantic_check_recurse(node *n, SymbolTable *prev_sym);
+void semantic_check_recurse(node *n, SymbolTable *prev_sym);
 void unary_check_type(Type *type_out, int line, int op, Type *type_in);
 void binary_check_type(Type *type_out, int line, int op, Type *type1, Type *type2);
 void function_check_args(int line, int func_id, Type *ret_type, Type *arg_type, int num_args);
@@ -17,113 +17,14 @@ int semantic_check( node *ast) {
 
     printf("Semantic check ...\n");
 
-  return semantic_check_recurse(ast, NULL); // failed checks
+    semantic_check_recurse(ast, NULL); // failed checks
+    return errorOccurred ? 0 : 1;
 }
 
-/*
-  union {
-    struct {
-      node *declarations;
-      node *statements;
-      SymbolTable *symbols;
-    } scope;
-
-    struct {
-      node *declarations;
-      node *declaration;
-    } declarations;
-
-    struct {
-      node *statements;
-      node *statement;
-    } statements;
-
-    struct {
-      Type *type_info;
-      char *id;
-    } declaration;
-
-    struct {
-      char *id;
-      node *expression;
-      Type *type_info;
-    } declaration_init;
-
-    struct {
-      char *id;
-      node *expression;
-      Type *type_info;
-    } declaration_const;
-
-    struct {
-      int op;
-      node *left;
-      node *right;
-    } assignment_stmt;
-
-    struct {
-      node *expression;
-      node *then_stmt;
-      node *else_stmt; 
-    } if_else_stmt;
-
-    struct {
-      node *expression;
-      node *then_stmt;
-    } if_stmt;
-
-    struct {
-      Type *type_info;
-      node *arguments;    
-    } constructor;
-
-    struct {
-      int func_id;
-      node *arguments;
-    } function;
-
-    struct {
-      int op;
-      // Type *type_info;
-      node *right;
-    } unary_expr;
-
-    struct {
-      int op;
-      // Type *type_info;
-      node *left;
-      node *right;
-    } binary_expr;
-
-    struct {
-      int value;
-    } int_literal;
-
-    struct {
-      float value;
-    } float_literal;
-
-    struct {
-      bool value;
-    } bool_literal;
-
-    struct {
-      char *identifier;
-      Type *type_info;
-      int index;
-    } variable;
-
-    struct {
-      node *arguments;
-      node *argument;
-    } arguments;
-  };
-*/
-
 SymbolTable *root;
-int semantic_check_recurse(node *n, SymbolTable *s){
+void semantic_check_recurse(node *n, SymbolTable *s){
     if(n == NULL){
-      return 1;
+      return;
     }
    
     Type *temp_type;
@@ -191,7 +92,6 @@ int semantic_check_recurse(node *n, SymbolTable *s){
     }
     case ASSIGNMENT_NODE:
     {
-      //TODO: check type
       semantic_check_recurse(n->assignment_stmt.left, s);
       semantic_check_recurse(n->assignment_stmt.right, s);
 
@@ -287,9 +187,11 @@ int semantic_check_recurse(node *n, SymbolTable *s){
       semantic_check_recurse(n->binary_expr.right, s);
       binary_check_type(n->type_info, n->line, n->binary_expr.op, (n->binary_expr.left)->type_info, (n->binary_expr.right)->type_info);
       break;
+
     //BOOL_NODE,
     //INT_NODE,
     //FLOAT_NODE,
+
     case VAR_NODE:
     {
       /* Checking variable was declared */
@@ -338,8 +240,6 @@ int semantic_check_recurse(node *n, SymbolTable *s){
     default:
       break;
     }
-
-    return 0;
 }
 
 bool type_check(Type *info1, Type *info2) {
