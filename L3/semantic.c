@@ -7,6 +7,7 @@
 
 bool type_check(Type *info1, Type *info2);
 int semantic_check_recurse(node *n, SymbolTable *prev_sym);
+void unary_check_type(Type *type_out, int line, int op, Type *type_in);
 void binary_check_type(Type *type_out, int line, int op, Type *type1, Type *type2);
 void set_type(Type *src, Type *dst);
 
@@ -230,7 +231,8 @@ int semantic_check_recurse(node *n, SymbolTable *s){
     }
     case UNARY_EXPRESSION_NODE:
     {
-      //TODO: check type of arguments
+      semantic_check_recurse(n->unary_expr.right, s);
+      unary_check_type(n->type_info, n->line, n->unary_expr.op, (n->unary_expr.right)->type_info);
       break;
     }
     case BINARY_EXPRESSION_NODE:
@@ -299,6 +301,45 @@ bool is_scalar(Type *type){
   return(type->length == 1);
 }
 
+/* Checks the input type of the unary operator and modifies the the output type accordingly 
+ * Throws an error if the input type is incorrect
+ */
+void unary_check_type(Type *type_out, int line, int op, Type *type_in) {
+
+  /* if the input argument has type ANY, output is also type ANY */
+  if(type_in->basic_type == Type::ANY){
+    return;
+  }
+
+  /* Argument type check */
+  switch(op){
+    case '!':
+      if(type_in->basic_type != Type::BOOLEAN){
+        fprintf(errorFile, "ERROR: line %d, argument 1 of ! operator does not have boolean type\n", line);
+        errorOccurred = 1;
+        return;
+      }
+      break;
+    case '-':
+      if(!is_arithmetic(type_in)){
+        fprintf(errorFile, "ERROR: line %d, argument 1 of %s operator does not have arithmetic type\n", line, get_operator(op));
+        errorOccurred = 1;
+        return;
+      }
+      break;
+    default:
+      break;
+  }
+
+  /* Set results (output type)*/
+  type_out->length = type_in->length;
+  type_out->basic_type = type_in->basic_type;
+
+}
+
+/* Checks the input types of the binary operator and modifies the the output type accordingly 
+ * Throws an error if the input types are incorrect
+ */
 void binary_check_type(Type *type_out, int line, int op, Type *type1, Type *type2) {
 
   /* if one or more arguments have type ANY, we also result in type ANY */
