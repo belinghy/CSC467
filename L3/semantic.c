@@ -146,6 +146,8 @@ int semantic_check_recurse(node *n, SymbolTable *s){
 
     case DECLARATION_WITH_INIT_NODE:
     {
+      semantic_check_recurse(n->declaration_init.expression, s);
+
       if((s->put(n->declaration_init.id, n->type_info)) == 1){
         fprintf(errorFile, "ERROR: line %d: redeclaration of variable %s\n", n->line, n->declaration_init.id);
         errorOccurred = true;
@@ -158,7 +160,8 @@ int semantic_check_recurse(node *n, SymbolTable *s){
 
     case DECLARATION_CONST_NODE:
     {
-      // TODO: FIXME
+      semantic_check_recurse(n->declaration_const.expression, s);
+
       if((s->put(n->declaration_const.id, n->type_info)) == 1){
         fprintf(errorFile, "ERROR: line %d: redeclaration of variable %s\n", n->line, n->declaration_const.id);
         errorOccurred = true;

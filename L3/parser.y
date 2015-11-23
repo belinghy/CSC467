@@ -420,20 +420,12 @@ variable
   : ID
       {
         yTRACE("variable -> ID \n");
-        Type *type = (Type *) malloc(sizeof(Type));
-        type->length = 1;
-        type->basic_type = Type::ANY;
-        type->is_const = false;
-        $$ = ast_allocate(VAR_NODE, $1, type, -1, yyline );
+        $$ = ast_allocate(VAR_NODE, $1, -1, yyline );
       }
   | ID '[' INT_C ']' %prec '['
       {
         yTRACE("variable -> ID [ INT_C ] \n")
-        Type *type = (Type *) malloc(sizeof(Type));
-        type->length = -1;
-        type->basic_type = Type::ANY;
-        type->is_const = false;
-        $$ = ast_allocate(VAR_NODE, $1, type, $3, yyline );
+        $$ = ast_allocate(VAR_NODE, $1, $3, yyline );
       }
   ;
 

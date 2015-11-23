@@ -35,9 +35,11 @@ node *ast_allocate(node_kind kind, ...) {
   switch(kind) {
   
   case SCOPE_NODE:
+  {
     ast->scope.declarations = va_arg(args, node *);
     ast->scope.statements = va_arg(args, node *);
     break;
+  }
 
   case DECLARATIONS_NODE:
   {
@@ -82,10 +84,12 @@ node *ast_allocate(node_kind kind, ...) {
   }
 
   case ASSIGNMENT_NODE:
+  {
     ast->assignment_stmt.op = va_arg(args, int);
     ast->assignment_stmt.left = va_arg(args, node *);
     ast->assignment_stmt.right = va_arg(args, node *);
     break;
+  }
 
   case IF_WITH_ELSE_STATEMENT_NODE:
   {
@@ -169,10 +173,13 @@ node *ast_allocate(node_kind kind, ...) {
   }
 
   case VAR_NODE:
+  {
     ast->variable.identifier = va_arg(args, char *);
-    ast->type_info = va_arg(args, Type *);
+    // free(ast->type_info);
+    // ast->type_info = va_arg(args, Type *);
     ast->variable.index = va_arg(args, int);
     break;
+  }
 
   case ARGUMENTS_NODE:
   {
@@ -302,20 +309,26 @@ void ast_free(node *ast) {
   }
 
   case BOOL_NODE:
+  {
     // ast->bool_literal.value = (va_arg(args, int) == 1) ? true : false;
     // free(ast->bool_literal.type_info); ast->bool_literal.type_info = NULL;
     break;
+  }
 
   case INT_NODE:
+  {
     // ast->int_literal.value = va_arg(args, int);
     // free(ast->int_literal.type_info); ast->int_literal.type_info = NULL;
     break;
+  }
 
   case FLOAT_NODE:
+  {
     // ast->float_literal.value = (float) va_arg(args, double);
     // free(ast->float_literal.type_info); ast->float_literal.type_info = NULL;
     break;
-
+  }
+  
   case VAR_NODE:
   {  
     free(ast->variable.identifier);// = va_arg(args, char *);
