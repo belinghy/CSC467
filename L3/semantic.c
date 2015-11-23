@@ -198,6 +198,8 @@ int semantic_check_recurse(node *n, SymbolTable *s){
         fprintf(errorFile, "ERROR: line %d: type mismatch in assignment of variable %s\n", n->line, n->assignment_stmt.left->variable.identifier);
         errorOccurred = true;
       }
+
+      set_type(n->assignment_stmt.left->type_info, n->type_info);
       break;
     }
     case IF_WITH_ELSE_STATEMENT_NODE:
