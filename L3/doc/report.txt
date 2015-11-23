@@ -3,6 +3,7 @@ CSC467 Report
 NOTES:
 - For readability, the printed output has END_IF, END_SCOPE, END_DECLARATIONS etc tags in addition to the close brackets required. Also, an ELSE is printed for if-else statements to separate the then-statements and the else-statements.
 - The flag -std=c++11 is added to the makefile to allow the use of std::unordered_map to implement the symbol table.
+- An expression is invalid when the types are mismatched. Its type in printed AST will be ANY-TYPE-VECTOR (if the length unknown) or ANY-TYPE (for known scalars).
 
 Bonuses Attempted
 Report the line number on which the semantic error occured.

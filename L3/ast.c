@@ -514,8 +514,10 @@ void ast_print_recurse(node *n, int indent, int level) {
   }
 
   case UNARY_EXPRESSION_NODE:
-  {
-    printf("(UNARY ");
+  { 
+    char buf[20];
+    get_type(n->type_info, buf);
+    printf("(UNARY %s ", buf);
     printf("%s ", get_operator(n->unary_expr.op)); //TODO: type
     ast_print_recurse(n->unary_expr.right, indent, level);
     printf(")");
@@ -524,7 +526,9 @@ void ast_print_recurse(node *n, int indent, int level) {
 
   case BINARY_EXPRESSION_NODE:
   {
-    printf("(BINARY ");//TODO: type
+    char buf[20];
+    get_type(n->type_info, buf);
+    printf("(BINARY %s ", buf);
     printf("%s ", get_operator(n->binary_expr.op));
     ast_print_recurse(n->binary_expr.left, indent, level);
     printf(" ");
