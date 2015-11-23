@@ -196,7 +196,8 @@ int semantic_check_recurse(node *n, SymbolTable *s){
       semantic_check_recurse(n->assignment_stmt.right, s);
 
       // readonly variables cannot be assigned
-      if (root->lookup(n->assignment_stmt.left->variable.identifier)->type->readonly) {
+      if (root->lookup(n->assignment_stmt.left->variable.identifier) != NULL &&
+          root->lookup(n->assignment_stmt.left->variable.identifier)->type->readonly) {
         fprintf(errorFile, "ERROR: line %d: readonly variable, %s, cannot be assigned\n", n->line, n->assignment_stmt.left->variable.identifier);
         errorOccurred = true;
       }

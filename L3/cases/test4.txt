@@ -1,0 +1,24 @@
+{
+  /* Binary op tests */  
+  ivec2 w;
+  int q;
+  bool z;
+  vec3 a_vec3;
+  vec2 a_vec2;
+  vec2 b_vec2;
+  bvec2 c_bvec2;
+  float a_float;
+  float b_float;
+  z = w > q;
+  c_bvec2 = a_vec2 != b_vec2;
+  c_bvec2 = a_vec3 == b_vec2;
+  c_bvec2 = c_bvec2 + a_vec2;
+  a_float = a_float + b_float;
+  a_float = q + b_float;
+  a_float = a_float * b_vec2;
+  a_float = a_vec3 * b_vec2;
+  a_float = !a_float;
+  a_vec3 = -a_vec3;
+  z = -z;
+  a_float = !a_float;
+}

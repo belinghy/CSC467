@@ -1,0 +1,10 @@
+{
+  /* argument test */
+   ivec3 w;
+   int q;
+   bool z;
+   z = 2;
+   z = dp3(w, w, w);
+   z = dp3(q, w);
+   z = q * w;
+}
