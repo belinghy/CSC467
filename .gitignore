@@ -6,4 +6,5 @@ parser.tab.c
 scanner.c
 y.output
 token_output.txt
-
+phong
+shader
