@@ -132,6 +132,9 @@ void semantic_check_recurse(node *n, SymbolTable *s){
     }
     case IF_WITH_ELSE_STATEMENT_NODE:
     {
+      semantic_check_recurse(n->if_else_stmt.expression, s);
+      semantic_check_recurse(n->if_else_stmt.then_stmt, s);
+      semantic_check_recurse(n->if_else_stmt.else_stmt, s);
       if (n->if_else_stmt.expression->type_info->basic_type != Type::BOOLEAN) {
         char buf[20];
         get_type(n->if_else_stmt.expression->type_info, buf);
@@ -142,6 +145,8 @@ void semantic_check_recurse(node *n, SymbolTable *s){
     }
     case IF_STATEMENT_NODE:
     {
+      semantic_check_recurse(n->if_stmt.expression, s);
+      semantic_check_recurse(n->if_stmt.then_stmt, s);
       if (n->if_stmt.expression->type_info->basic_type != Type::BOOLEAN) {
         char buf[20];
         get_type(n->if_stmt.expression->type_info, buf);
