@@ -1,2 +1,11 @@
-$ARBfp_10
-$end
+!!ARBfp1.0
+
+TEMP r0; 
+MUL r0.x, fragment.color.x, fragment.position.x;
+MUL r0.y, fragment.color.y, fragment.position.y;
+MOV r0.z, fragment.color.z;
+MUL r0.w, fragment.color.w, fragment.position.x;
+MUL r0.w, r0.w, fragment.position.y;
+
+MOV result.color, r0;
+END

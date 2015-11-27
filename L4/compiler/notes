@@ -1,0 +1,15 @@
+ASSIGN: MOV dest, src;
+
+gl_FragColor     -> result.color
+gl_FragDepth     -> result.depth
+gl_FragCoord     -> fragment.position
+gl_TexCoord      -> fragment.texcoord
+gl_Color         -> fragment.color
+gl_Secondary     -> fragment.color.secondary
+gl_FogFragCoord  -> fragment.fogcoord
+gl_Light_Half    -> state.light[0].half
+gl_Light_Ambient -> state.lightmodel.ambient
+gl_Material_Shininess -> state.material.shininess
+env1 -> program.env[1]
+env2 -> program.env[2]
+env3 -> program.env[3]
