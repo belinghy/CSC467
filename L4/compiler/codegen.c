@@ -71,12 +71,24 @@ void genCodeRecurse(node *n) {
       dumpInstr(buf)
 
       genCodeRecurse(n->declaration_init.expression);
+
+      sprintf(buf, "MOV %s, TEMP_VARI_UNIQUE;", id_name);
+      dumpInstr(buf)
       break;
     }
 
     case DECLARATION_CONST_NODE:
     {
+      char buf[256];
+      char id_name[70];
+      getVariableName(n, id_name);
+      sprintf(buf, "TEMP %s;", id_name);
+      dumpInstr(buf)
+
       genCodeRecurse(n->declaration_const.expression);
+
+      sprintf(buf, "MOV %s, TEMP_VARI_UNIQUE;", id_name);
+      dumpInstr(buf)
       break;
     }
     case ASSIGNMENT_NODE:
@@ -163,7 +175,7 @@ void genCodeRecurse(node *n) {
     }
     case BOOL_NODE:
     {
-      // can still print bool
+      // can still print bool, but will almost never be used
       // although if (true) is handled by IF-STMT
       break;
     }
