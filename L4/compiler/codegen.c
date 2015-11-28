@@ -15,7 +15,6 @@ void genCodeRecurse(node *n) {
 
   // TODO copied for semantic.c, change to print stuff
   // No need to look at symbol table?
-  // Each line of MiniGLSL code will use TEMP_VARI_UNIQUE as storage. Don't use this between lines!
   switch(n->kind) {
     case SCOPE_NODE:
     {
@@ -23,7 +22,10 @@ void genCodeRecurse(node *n) {
         // is in program scope
         dumpInstr("!!ARBfp1.0\n")
         char buf[256];
-        sprintf(buf, "TEMP %s;", "TEMP_VARI_UNIQUE");
+        sprintf(buf, "TEMP %s;", "TEMP_VARI_UNIQUE"); // used as a general variable to pass values
+        dumpInstr("TEMP BIN_EXPR_TEMP_VAR_LEFT;") // used to store LHS value of binary expressions
+        dumpInstr("TEMP BIN_EXPR_TEMP_VAR_RIGHT;") // used to store RHS value
+
         dumpInstr(buf)
       }
       
@@ -135,11 +137,9 @@ void genCodeRecurse(node *n) {
     case BINARY_EXPRESSION_NODE:
     {
       dumpInstr("\n# Binary Expression")
-      dumpInstr("TEMP BIN_EXPR_TEMP_VAR_LEFT;")
       genCodeRecurse(n->binary_expr.left);
       dumpInstr("MOV BIN_EXPR_TEMP_VAR_LEFT, TEMP_VARI_UNIQUE;")
 
-      dumpInstr("TEMP BIN_EXPR_TEMP_VAR_RIGHT;")
       genCodeRecurse(n->binary_expr.right);
       dumpInstr("MOV BIN_EXPR_TEMP_VAR_RIGHT, TEMP_VARI_UNIQUE;")
 
