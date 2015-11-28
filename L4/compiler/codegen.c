@@ -2,7 +2,7 @@
 #define dumpInstr(x)    { if (dumpInstructions) fprintf(dumpFile, "%s\n", x); }
 
 // Declarations
-char* getVariableName(char *s);
+void getVariableName(node *n, char *id_name);
 void genCodeRecurse(node *n);
 
 // Main function
@@ -15,11 +15,24 @@ void genCodeRecurse(node *n) {
 
   // TODO copied for semantic.c, change to print stuff
   // No need to look at symbol table?
+  // Each line of MiniGLSL code will use TEMP_VARI_UNIQUE as storage. Don't use this between lines!
   switch(n->kind) {
     case SCOPE_NODE:
     {
+      if (n->scope.symbols->prev_scope == NULL) {
+        // is in program scope
+        dumpInstr("!!ARBfp1.0\n")
+        char buf[256];
+        sprintf(buf, "TEMP %s;", "TEMP_VARI_UNIQUE");
+        dumpInstr(buf)
+      }
+      
       genCodeRecurse(n->scope.declarations);
       genCodeRecurse(n->scope.statements);
+
+      if (n->scope.symbols->prev_scope == NULL) {
+        dumpInstr("\nEND")
+      }
       break;
     }
 
@@ -40,7 +53,9 @@ void genCodeRecurse(node *n) {
     case DECLARATION_NODE: 
     {
       char buf[256];
-      sprintf(buf, "TEMP %s;\n", getVariableName(n->declaration.id));
+      char id_name[70];
+      getVariableName(n, id_name);
+      sprintf(buf, "TEMP %s;", id_name);
       dumpInstr(buf)
       break;
     }
@@ -48,7 +63,9 @@ void genCodeRecurse(node *n) {
     case DECLARATION_WITH_INIT_NODE:
     {
       char buf[256];
-      sprintf(buf, "TEMP %s;\n", getVariableName(n->declaration.id));
+      char id_name[70];
+      getVariableName(n, id_name);
+      sprintf(buf, "TEMP %s;", id_name);
       dumpInstr(buf)
 
       genCodeRecurse(n->declaration_init.expression);
@@ -62,8 +79,16 @@ void genCodeRecurse(node *n) {
     }
     case ASSIGNMENT_NODE:
     {
-      genCodeRecurse(n->assignment_stmt.left);
-      genCodeRecurse(n->assignment_stmt.right);
+      // LHS is always variable
+      // genCodeRecurse(n->assignment_stmt.left); // handle this below
+      // generate RHS expression first
+      genCodeRecurse(n->assignment_stmt.right); 
+
+      char buf[256];
+      char id_name[70];
+      getVariableName(n->assignment_stmt.left, id_name);
+      sprintf(buf, "MOV %s, TEMP_VARI_UNIQUE;", id_name);
+      dumpInstr(buf)
       break;
     }
     case IF_WITH_ELSE_STATEMENT_NODE:
@@ -92,19 +117,78 @@ void genCodeRecurse(node *n) {
     case UNARY_EXPRESSION_NODE:
     {
       genCodeRecurse(n->unary_expr.right);
+
+      // Result is already stored in TEMP_VARI_UNIQUE, only need to do negation or unary minus
+      if (n->unary_expr.op == '!') {
+        dumpInstr("NOT TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, -1.0;")
+
+      } else if (n->unary_expr.op == '-') {
+        dumpInstr("MUL TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, -1.0;")
+
+      } else {
+        // FIXME: We can't get in here
+        dumpInstr("WHY ARE YOU HERE?!;")
+
+      }
       break;
     }
     case BINARY_EXPRESSION_NODE:
+    {
+      dumpInstr("\n# Binary Expression")
+      dumpInstr("TEMP BIN_EXPR_TEMP_VAR_LEFT;")
       genCodeRecurse(n->binary_expr.left);
-      genCodeRecurse(n->binary_expr.right);
-      break;
+      dumpInstr("MOV BIN_EXPR_TEMP_VAR_LEFT, TEMP_VARI_UNIQUE;")
 
-    //BOOL_NODE,
-    //INT_NODE,
-    //FLOAT_NODE,
+      dumpInstr("TEMP BIN_EXPR_TEMP_VAR_RIGHT;")
+      genCodeRecurse(n->binary_expr.right);
+      dumpInstr("MOV BIN_EXPR_TEMP_VAR_RIGHT, TEMP_VARI_UNIQUE;")
+
+      // FIXME: add other operators
+      if (n->binary_expr.op == '+') {
+        dumpInstr("ADD TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
+
+      } else if (n->binary_expr.op == '-') {
+        dumpInstr("SUB TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
+
+      } else if (n->binary_expr.op == '*') {
+        dumpInstr("MUL TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
+
+      } else {
+        dumpInstr("FIXME: add other operators")
+
+      }
+
+      dumpInstr("# End Binary Expression\n")
+      break;
+    }
+    case BOOL_NODE:
+    {
+      // can still print bool
+      // although if (true) is handled by IF-STMT
+      break;
+    }
+    case INT_NODE:
+    {
+      char buf[256];
+      sprintf(buf, "MOV TEMP_VARI_UNIQUE, %f;", (float)n->int_literal.value);
+      dumpInstr(buf)
+      break;
+    }
+    case FLOAT_NODE:
+    {
+      char buf[256];
+      sprintf(buf, "MOV TEMP_VARI_UNIQUE, %f;", n->float_literal.value);
+      dumpInstr(buf)
+      break;
+    }
 
     case VAR_NODE:
     {
+      char buf[256];
+      char id_name[70];
+      getVariableName(n, id_name);
+      sprintf(buf, "MOV TEMP_VARI_UNIQUE, %s;", id_name);
+      dumpInstr(buf)
       break;
     }
     case ARGUMENTS_NODE:
@@ -118,47 +202,91 @@ void genCodeRecurse(node *n) {
     }
 }
 
-char* getVariableName(char *s) {
-  if (strcmp(s, "gl_FragColor") == 0) {
-    return "result.color";
+void getVariableName(node *n, char *id_name) {
+  char *id;
+  switch (n->kind) {
+    case VAR_NODE:
+      id = n->variable.identifier;
+      break;
+    case DECLARATION_NODE:
+      id = n->declaration.id;
+      break;
+    case DECLARATION_WITH_INIT_NODE:
+      id = n->declaration_init.id;
+      break;
+    case DECLARATION_CONST_NODE:
+      id = n->declaration_const.id;
+      break;
+    default:
+      dumpInstr("FIXME: unknown node kind in getVariableName()")
+      break;
+  }
 
-  } else if (strcmp(s, "gl_FragDepth") == 0) {
-    return "result.depth";
+  if (strcmp(id, "gl_FragColor") == 0) {
+    id = "result.color";
+
+  } else if (strcmp(id, "gl_FragDepth") == 0) {
+    id = "result.depth";
   
-  } else if (strcmp(s, "gl_FragCoord") == 0) {
-    return "fragment.position";
+  } else if (strcmp(id, "gl_FragCoord") == 0) {
+    id = "fragment.position";
   
-  } else if (strcmp(s, "gl_TexCoord") == 0) {
-    return "fragment.texcoord";
+  } else if (strcmp(id, "gl_TexCoord") == 0) {
+    id = "fragment.texcoord";
   
-  } else if (strcmp(s, "gl_Color") == 0) {
-    return "fragment.color";
+  } else if (strcmp(id, "gl_Color") == 0) {
+    id = "fragment.color";
   
-  } else if (strcmp(s, "gl_Secondary") == 0) {
-    return "fragment.color.secondary";
+  } else if (strcmp(id, "gl_Secondary") == 0) {
+    id = "fragment.color.secondary";
   
-  } else if (strcmp(s, "gl_FogFragCoord") == 0) {
-    return "fragment.fogcoord";
+  } else if (strcmp(id, "gl_FogFragCoord") == 0) {
+    id = "fragment.fogcoord";
   
-  } else if (strcmp(s, "gl_Light_Half") == 0) {
-    return "state.light[0].half";
+  } else if (strcmp(id, "gl_Light_Half") == 0) {
+    id = "state.light[0].half";
   
-  } else if (strcmp(s, "gl_Light_Ambient") == 0) {
-    return "state.lightmodel.ambient";
+  } else if (strcmp(id, "gl_Light_Ambient") == 0) {
+    id = "state.lightmodel.ambient";
   
-  } else if (strcmp(s, "gl_Material_Shininess") == 0) {
-    return "state.material.shininess";
+  } else if (strcmp(id, "gl_Material_Shininess") == 0) {
+    id = "state.material.shininess";
   
-  } else if (strcmp(s, "env1") == 0) {
-    return "program.env[1]";
+  } else if (strcmp(id, "env1") == 0) {
+    id = "program.env[1]";
   
-  } else if (strcmp(s, "env2") == 0) {
-    return "program.env[2]";
+  } else if (strcmp(id, "env2") == 0) {
+    id = "program.env[2]";
   
-  } else if (strcmp(s, "env3") == 0) {
-    return "program.env[3]";
+  } else if (strcmp(id, "env3") == 0) {
+    id = "program.env[3]";
   
+  }
+
+  if (n->kind == VAR_NODE) {
+    if (n->variable.index == -1) {
+      sprintf(id_name, "%s", id);
+
+    } else if (n->variable.index == 0) {
+      sprintf(id_name, "%s.x", id);
+
+    } else if (n->variable.index == 1) {
+      sprintf(id_name, "%s.y", id);
+
+    } else if (n->variable.index == 2) {
+      sprintf(id_name, "%s.z", id);
+
+    } else if (n->variable.index == 3) {
+      sprintf(id_name, "%s.w", id);
+
+    } else {
+      dumpInstr("FIXME: array out of bound")
+    }
+    return;
+  } else if (n->kind == DECLARATION_NODE || n->kind == DECLARATION_WITH_INIT_NODE || n->kind == DECLARATION_CONST_NODE ) {
+    sprintf(id_name, "%s", id);
+    return;
   } else {
-    return s;
+    return;
   }
 }
