@@ -95,6 +95,12 @@ void semantic_check_recurse(node *n, SymbolTable *s){
       semantic_check_recurse(n->assignment_stmt.left, s);
       semantic_check_recurse(n->assignment_stmt.right, s);
 
+      // writeonly variables cannot be read
+      if (n->assignment_stmt.right->type_info->writeonly) {
+        fprintf(errorFile, "ERROR: line %d: writeonly variable cannot be read\n", n->line);
+        errorOccurred = true;
+      }
+
       // readonly variables cannot be assigned
       if (root->lookup(n->assignment_stmt.left->variable.identifier) != NULL &&
           root->lookup(n->assignment_stmt.left->variable.identifier)->type->readonly) {
@@ -260,6 +266,8 @@ void set_type(Type *src, Type *dst){
     dst->length = src->length;
     dst->basic_type = src->basic_type;
     dst->is_const = src->is_const;
+    dst->readonly = src->readonly;
+    dst->writeonly = src->writeonly;
 }
 
 bool is_arithmetic(Type *type){
@@ -473,6 +481,8 @@ void binary_check_type(Type *type_out, int line, int op, Type *type1, Type *type
     case '^':
       type_out->length = type1->length;
       type_out->basic_type = type1->basic_type;
+      type_out->writeonly = type1->writeonly || type2->writeonly;
+      type_out->readonly = type1->readonly || type2->readonly;
       break;
     case '>':
     case '<':
@@ -490,6 +500,8 @@ void binary_check_type(Type *type_out, int line, int op, Type *type1, Type *type
         type_out->length = 1;
       }
       type_out->basic_type = type1->basic_type;
+      type_out->writeonly = type1->writeonly || type2->writeonly;
+      type_out->readonly = type1->readonly || type2->readonly;
       break;
     default:
       break;
@@ -521,7 +533,7 @@ void insert_predefined_variables(SymbolTable *s) {
   gl_FragCoord->basic_type = Type::FLOAT;
   gl_FragCoord->is_const = false;
   gl_FragCoord->readonly = false;
-  gl_FragCoord->writeonly = true;
+  gl_FragCoord->writeonly = false;
   s->put("gl_FragCoord", gl_FragCoord);
 
   // gl_TexCoord - readonly
