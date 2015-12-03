@@ -24,6 +24,7 @@ void genCodeRecurse(node *n) {
         dumpInstr("!!ARBfp1.0\n")
         char buf[256];
         sprintf(buf, "TEMP %s;", "TEMP_VARI_UNIQUE"); // used as a general variable to pass values
+        dumpInstr("TEMP TEMP_VARI_UNIQUE2;") // used as a general variable to pass values
         dumpInstr("TEMP BIN_EXPR_TEMP_VAR_LEFT;") // used to store LHS value of binary expressions
         dumpInstr("TEMP BIN_EXPR_TEMP_VAR_RIGHT;") // used to store RHS value
         dumpInstr("TEMP BOOL_EXPR_VALUE;") // used to store expression in IF statements
@@ -152,7 +153,7 @@ void genCodeRecurse(node *n) {
 
       // Result is already stored in TEMP_VARI_UNIQUE, only need to do negation or unary minus
       if (n->unary_expr.op == '!') {
-        dumpInstr("NOT TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, -1.0;")
+        dumpInstr("MUL TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, -1.0;")
 
       } else if (n->unary_expr.op == '-') {
         dumpInstr("MUL TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, -1.0;")
@@ -183,6 +184,64 @@ void genCodeRecurse(node *n) {
       } else if (n->binary_expr.op == '*') {
         dumpInstr("MUL TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
 
+      } else if (n->binary_expr.op == '^') {
+        dumpInstr("POW TEMP_VARI_UNIQUE.x, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
+
+      } else if (n->binary_expr.op == '/') {
+        dumpInstr("RCP TEMP_VARI_UNIQUE.x, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
+
+      } else if (n->binary_expr.op == AND) {
+        dumpInstr("MIN TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
+
+      } else if (n->binary_expr.op == OR) {
+        dumpInstr("MAX TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
+
+      } else if (n->binary_expr.op == EQ) {
+        dumpInstr("\n# Equal")
+        dumpInstr("SGE TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
+        dumpInstr("SGE TEMP_VARI_UNIQUE2, BIN_EXPR_TEMP_VAR_LEFT, BIN_EXPR_TEMP_VAR_RIGHT;")
+        dumpInstr("MIN TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE2;")
+        dumpInstr("# End Equal\n")
+
+      } else if (n->binary_expr.op == NEQ) {
+        dumpInstr("\n# Not-Equal")
+        dumpInstr("SGE TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
+        dumpInstr("SGE TEMP_VARI_UNIQUE2, BIN_EXPR_TEMP_VAR_LEFT, BIN_EXPR_TEMP_VAR_RIGHT;")
+        dumpInstr("MIN TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE2;")
+        dumpInstr("MUL TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, -1.0;")
+        dumpInstr("# End Not-Equal\n")
+
+      } else if (n->binary_expr.op == '<') {
+        dumpInstr("\n# Less-than")
+        dumpInstr("SLT TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_LEFT, BIN_EXPR_TEMP_VAR_RIGHT;")
+        dumpInstr("# End Less-than\n")
+
+      } else if (n->binary_expr.op == LEQ) {
+        dumpInstr("\n# Less-than-Equal")
+        dumpInstr("SGE TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
+        dumpInstr("SGE TEMP_VARI_UNIQUE2, BIN_EXPR_TEMP_VAR_LEFT, BIN_EXPR_TEMP_VAR_RIGHT;")
+        dumpInstr("MIN TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE2;")
+
+        dumpInstr("SLT TEMP_VARI_UNIQUE2, BIN_EXPR_TEMP_VAR_LEFT, BIN_EXPR_TEMP_VAR_RIGHT;")
+        dumpInstr("MAX TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE2;")
+        dumpInstr("# End Less-than-Equal\n")
+
+      } else if (n->binary_expr.op == '>') {
+        dumpInstr("\n# Greater-than")
+        dumpInstr("SGE TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
+        dumpInstr("SGE TEMP_VARI_UNIQUE2, BIN_EXPR_TEMP_VAR_LEFT, BIN_EXPR_TEMP_VAR_RIGHT;")
+        dumpInstr("MIN TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE2;")
+
+        dumpInstr("SLT TEMP_VARI_UNIQUE2, BIN_EXPR_TEMP_VAR_LEFT, BIN_EXPR_TEMP_VAR_RIGHT;")
+        dumpInstr("MAX TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE2;")
+        dumpInstr("MUL TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, -1.0;")
+        dumpInstr("# End Greater-than\n")
+
+      } else if (n->binary_expr.op == GEQ) {
+        dumpInstr("\n# Greater-than")
+        dumpInstr("SGE TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_LEFT, BIN_EXPR_TEMP_VAR_RIGHT;")
+        dumpInstr("# End Greater-than\n")
+
       } else {
         dumpInstr("FIXME: add other operators")
 
@@ -193,8 +252,12 @@ void genCodeRecurse(node *n) {
     }
     case BOOL_NODE:
     {
-      // can still print bool, but will almost never be used
-      // although if (true) is handled by IF-STMT
+      // true : 1.0, false : 0.0
+      if (n->bool_literal.value) {
+        dumpInstr("MOV TEMP_VARI_UNIQUE, 1.0;")  
+      } else {
+        dumpInstr("MOV TEMP_VARI_UNIQUE, 0.0;")
+      }
       break;
     }
     case INT_NODE:
