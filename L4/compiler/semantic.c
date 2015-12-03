@@ -41,14 +41,28 @@ void semantic_check_recurse(node *n, SymbolTable *s){
       break;
 
     case DECLARATIONS_NODE:
+    {
       semantic_check_recurse(n->declarations.declarations, s);
       semantic_check_recurse(n->declarations.declaration, s);
+      if (n->declarations.declarations == NULL) {
+        (n->declarations).num_decls = 0;
+      } else {
+        (n->declarations).num_decls = (n->declarations.declarations)->declarations.num_decls + 1;
+      }
       break;
+    }
 
     case STATEMENTS_NODE:
+    {
       semantic_check_recurse(n->statements.statements, s);
       semantic_check_recurse(n->statements.statement, s);
+      if (n->statements.statements == NULL) {
+        (n->statements).num_stmts = 0;
+      } else {
+        (n->statements).num_stmts = (n->statements.statements)->statements.num_stmts + 1;
+      }
       break;
+    }
 
     case DECLARATION_NODE:
       /* Enter variable into symbol table */

@@ -46,6 +46,7 @@ node *ast_allocate(node_kind kind, ...) {
   {
     ast->declarations.declarations = va_arg(args, node *);
     ast->declarations.declaration = va_arg(args, node *);
+    ast->declarations.num_decls = -1;
     break;
   }
 
@@ -53,6 +54,7 @@ node *ast_allocate(node_kind kind, ...) {
   {
     ast->statements.statements = va_arg(args, node *);
     ast->statements.statement = va_arg(args, node *);
+    ast->statements.num_stmts = -1;
     break;
   }
 

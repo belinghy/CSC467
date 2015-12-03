@@ -67,11 +67,13 @@ struct node_ {
     struct {
       node *declarations;
       node *declaration;
+      int num_decls;
     } declarations;
 
     struct {
       node *statements;
       node *statement;
+      int num_stmts;
     } statements;
 
     struct {
