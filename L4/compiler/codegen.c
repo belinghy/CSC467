@@ -98,6 +98,7 @@ void genCodeRecurse(node *n) {
       // LHS is always variable
       // genCodeRecurse(n->assignment_stmt.left); // handle this below
       // generate RHS expression first
+      dumpInstr("\n# Assignment")
       genCodeRecurse(n->assignment_stmt.right); 
 
       char buf[256];
@@ -105,6 +106,8 @@ void genCodeRecurse(node *n) {
       getVariableName(n->assignment_stmt.left, id_name);
       sprintf(buf, "MOV %s, TEMP_VARI_UNIQUE;", id_name);
       dumpInstr(buf)
+
+      dumpInstr("# End Assignment\n")
       break;
     }
     case IF_WITH_ELSE_STATEMENT_NODE:
@@ -144,6 +147,19 @@ void genCodeRecurse(node *n) {
     case FUNCTION_NODE:
     {
       genCodeRecurse(n->function.arguments);
+      char buf[256];
+      switch(n->function.func_id){
+        case 0:
+          sprintf(buf, "DP3 TEMP_VARI_UNIQUE, TEMP_ARG0, TEMP_ARG1"); break;
+        case 1:
+          sprintf(buf, "LIT TEMP_VARI_UNIQUE, TEMP_ARG0"); break;
+        case 2:
+          sprintf(buf, "RSQ TEMP_VARI_UNIQUE, TEMP_ARG0.x"); break;
+        default:
+          return sprintf(buf, "FIXME: Unknown function"); break;
+      }
+
+      dumpInstr(buf);
       break;
     }
     case UNARY_EXPRESSION_NODE:
