@@ -29,6 +29,10 @@ void genCodeRecurse(node *n) {
         dumpInstr("TEMP BIN_EXPR_TEMP_VAR_LEFT;") // used to store LHS value of binary expressions
         dumpInstr("TEMP BIN_EXPR_TEMP_VAR_RIGHT;") // used to store RHS value
         dumpInstr("TEMP BOOL_EXPR_VALUE;") // used to store expression in IF statements
+        dumpInstr("TEMP TEMP_ARG0;") // used to store values in arguments
+        dumpInstr("TEMP TEMP_ARG1;")
+        dumpInstr("TEMP TEMP_ARG2;")
+        dumpInstr("TEMP TEMP_ARG3;")
 
         dumpInstr(buf)
       }
@@ -152,11 +156,11 @@ void genCodeRecurse(node *n) {
       char buf[256];
       switch(n->function.func_id){
         case 0:
-          sprintf(buf, "DP3 TEMP_VARI_UNIQUE, TEMP_ARG0, TEMP_ARG1"); break;
+          sprintf(buf, "DP3 TEMP_VARI_UNIQUE, TEMP_ARG0, TEMP_ARG1;"); break;
         case 1:
-          sprintf(buf, "LIT TEMP_VARI_UNIQUE, TEMP_ARG0"); break;
+          sprintf(buf, "LIT TEMP_VARI_UNIQUE, TEMP_ARG0;"); break;
         case 2:
-          sprintf(buf, "RSQ TEMP_VARI_UNIQUE, TEMP_ARG0.x"); break;
+          sprintf(buf, "RSQ TEMP_VARI_UNIQUE, TEMP_ARG0.x;"); break;
         default:
           return sprintf(buf, "FIXME: Unknown function"); break;
       }
