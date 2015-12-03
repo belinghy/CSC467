@@ -1,4 +1,5 @@
 #include "codegen.h"
+#include "parser.tab.h"
 #define dumpInstr(x)    { if (dumpInstructions) fprintf(dumpFile, "%s\n", x); }
 
 // Declarations
