@@ -13,6 +13,8 @@ void genCode(node *ast){
 }
 
 void genCodeRecurse(node *n) {
+  static int if_stmt_level = 0; //at the top level
+
   if (n == NULL) return;
 
   // TODO copied for semantic.c, change to print stuff
@@ -25,11 +27,13 @@ void genCodeRecurse(node *n) {
         dumpInstr("!!ARBfp1.0\n")
         char buf[256];
         sprintf(buf, "TEMP %s;", "TEMP_VARI_UNIQUE"); // used as a general variable to pass values
+        dumpInstr(buf)
         dumpInstr("TEMP TEMP_VARI_UNIQUE2;") // used as a general variable to pass values
         dumpInstr("TEMP BIN_EXPR_TEMP_VAR_LEFT;") // used to store LHS value of binary expressions
         dumpInstr("TEMP BIN_EXPR_TEMP_VAR_RIGHT;") // used to store RHS value
-        dumpInstr("TEMP BOOL_EXPR_VALUE;") // used to store expression in IF statements
-
+        sprintf(buf, "TEMP BOOL_EXPR_VALUE%d;", if_stmt_level); // used to store expression in IF statements
+        dumpInstr(buf)
+        sprintf(buf, "MOV BOOL_EXPR_VALUE%d, 0.5;", if_stmt_level); // used to store expression in IF statements
         dumpInstr(buf)
       }
       
@@ -106,7 +110,7 @@ void genCodeRecurse(node *n) {
       char buf[256];
       char id_name[70];
       getVariableName(n->assignment_stmt.left, id_name);
-      sprintf(buf, "MOV %s, TEMP_VARI_UNIQUE;", id_name);
+      sprintf(buf, "CMP %s, BOOL_EXPR_VALUE%d, %s, TEMP_VARI_UNIQUE;", id_name, if_stmt_level, id_name); /* Check for if statement */
       dumpInstr(buf)
 
       dumpInstr("# End Assignment\n")
@@ -127,7 +131,14 @@ void genCodeRecurse(node *n) {
     {
       genCodeRecurse(n->if_stmt.expression);
       // Don't need to check expression, only need to know the truth value
-      dumpInstr("MOV BOOL_EXPR_VALUE, TEMP_VARI_UNIQUE;")
+      if_stmt_level++;
+      char buf[256];
+      sprintf(buf, "TEMP BOOL_EXPR_VALUE%d;", if_stmt_level);
+      dumpInstr(buf)
+      sprintf(buf, "MOV BOOL_EXPR_VALUE%d, TEMP_VARI_UNIQUE;", if_stmt_level); // used to store expression in IF statements
+      dumpInstr(buf)
+      sprintf(buf, "SUB BOOL_EXPR_VALUE%d, BOOL_EXPR_VALUE%d, 0.5;", if_stmt_level, if_stmt_level); // used to store expression in IF statements
+      dumpInstr(buf)
 
       genCodeRecurse(n->if_stmt.then_stmt);
       // TODO: To print the instructions
