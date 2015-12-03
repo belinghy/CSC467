@@ -138,6 +138,11 @@ void semantic_check_recurse(node *n, SymbolTable *s){
       // type mismatch in assignment for scalar
       if (n->assignment_stmt.left->type_info->basic_type != n->assignment_stmt.right->type_info->basic_type) {
         fprintf(errorFile, "ERROR: line %d: type mismatch in assignment of variable %s\n", n->line, n->assignment_stmt.left->variable.identifier);
+        /*char buf[10];
+        get_type(n->assignment_stmt.left->type_info, buf);
+        fprintf(errorFile, "NOTE: line %d: LHS type %s ", n->line, buf);
+        get_type(n->assignment_stmt.right->type_info, buf);
+        fprintf(errorFile, "RHS type %s\n", buf);*/
         errorOccurred = true;
       } else {
         if (n->assignment_stmt.left->type_info->length != n->assignment_stmt.right->type_info->length && 
@@ -199,6 +204,10 @@ void semantic_check_recurse(node *n, SymbolTable *s){
     {
       semantic_check_recurse(n->function.arguments, s);
       function_check_args(n->line, n->function.func_id, n->type_info, (n->function.arguments)->type_info, (n->function.arguments)->arguments.num_args);
+      /*
+      char buf[10];
+      get_type(n->type_info, buf);
+      fprintf(errorFile, "NOTE: line %d: function return type %s\n", n->line, buf);*/
       break;
     }
     case UNARY_EXPRESSION_NODE:
@@ -227,18 +236,24 @@ void semantic_check_recurse(node *n, SymbolTable *s){
         break;
       } 
 
-      /* Getting type from declared variable */
-      set_type(attr->type, n->type_info);
-      /*char buf[10];
-      get_type(n->type_info, buf);
-      printf("HELLOO set var %s to type %s \n", n->variable.identifier, buf);*/
-
       /* Checking index is not out of bounds */
-      if((n->type_info)->length <= n->variable.index){
+      if((attr->type)->length <= n->variable.index){
         fprintf(errorFile, "ERROR: line %d: index %d is out of bounds for variable %s of length %d\n", n->line, n->variable.index, n->variable.identifier, (n->type_info)->length);
         errorOccurred = true;
       }
+
+      /* Set type of variable. After access, type is no longer vector */
+      set_type(attr->type, n->type_info);
+      if(n->variable.index != -1){
+        n->type_info->length = 1;
+      }
+
+      /*: TEMP
+      char buf[10];
+      get_type(n->type_info, buf);
+      printf("NOTE: line %d: set var %s to type %s \n", n->line, n->variable.identifier, buf);*/
       break;
+
     }
     case ARGUMENTS_NODE:
     {
@@ -307,7 +322,7 @@ void function_check_args(int line, int func_id, Type *ret_type, Type *arg_type, 
     } else if(arg_type->length != 3 && arg_type->length != 4 && arg_type->basic_type != Type::ANY){
       fprintf(errorFile, "ERROR: line %d, incorrect argument type\n", line);
       errorOccurred = true;
-    }
+    } 
     ret_type->basic_type = arg_type->basic_type;
     ret_type->length = 1;
     break;
