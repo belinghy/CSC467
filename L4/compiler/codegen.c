@@ -3,6 +3,7 @@
 
 // Declarations
 void getVariableName(node *n, char *id_name);
+char get_index_char(int index_num);
 void genCodeRecurse(node *n);
 
 // Main function
@@ -25,6 +26,7 @@ void genCodeRecurse(node *n) {
         sprintf(buf, "TEMP %s;", "TEMP_VARI_UNIQUE"); // used as a general variable to pass values
         dumpInstr("TEMP BIN_EXPR_TEMP_VAR_LEFT;") // used to store LHS value of binary expressions
         dumpInstr("TEMP BIN_EXPR_TEMP_VAR_RIGHT;") // used to store RHS value
+        dumpInstr("TEMP BOOL_EXPR_VALUE;") // used to store expression in IF statements
 
         dumpInstr(buf)
       }
@@ -110,17 +112,33 @@ void genCodeRecurse(node *n) {
       genCodeRecurse(n->if_else_stmt.expression);
       genCodeRecurse(n->if_else_stmt.then_stmt);
       genCodeRecurse(n->if_else_stmt.else_stmt);
+      // TODO: To print the instructions
+      // 1. Copy LHS variables into a new register
+      // 2. Copy LHS = (expression) ? then_stmt : else_stmt
+
       break;
     }
     case IF_STATEMENT_NODE:
     {
       genCodeRecurse(n->if_stmt.expression);
+      // Don't need to check expression, only need to know the truth value
+      dumpInstr("MOV BOOL_EXPR_VALUE, TEMP_VARI_UNIQUE;")
+
       genCodeRecurse(n->if_stmt.then_stmt);
+      // TODO: To print the instructions
+      // 1. Copy LHS variables into a new register
+      // 2. Copy LHS = (expression) ? then_stmt : LHS
+
       break;
     }
     case CONSTRUCTOR_NODE:
     {
       genCodeRecurse(n->constructor.arguments);
+      char buf[256];
+      for(int i = 0; i < (n->constructor.arguments)->arguments.num_args; i++){
+        sprintf(buf, "MOV TEMP_VARI_UNIQUE.%c, TEMP_ARG%d;", get_index_char(i), i);
+        dumpInstr(buf)
+      }
       break;
     }
     case FUNCTION_NODE:
@@ -207,6 +225,9 @@ void genCodeRecurse(node *n) {
     {
       genCodeRecurse(n->arguments.arguments);
       genCodeRecurse(n->arguments.argument);
+      char buf[256];
+      sprintf(buf, "MOV TEMP_ARG%d, TEMP_VARI_UNIQUE;", n->arguments.num_args - 1);
+      dumpInstr(buf)
       break;
     }
     default:
@@ -301,4 +322,16 @@ void getVariableName(node *n, char *id_name) {
   } else {
     return;
   }
+}
+
+char get_index_char(int index_num){
+    switch(index_num){
+      case 0: return 'x';
+      case 1: return 'y';
+      case 2: return 'z';
+      case 3: return 'w';
+      default:
+      dumpInstr("FIXME: array out of bound")
+      return;
+    }
 }
