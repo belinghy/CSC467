@@ -1,0 +1,45 @@
+!!ARBfp1.0
+
+TEMP fCol;
+MOV fCol, fragment.color;
+
+TEMP fTex;
+MOV fTex, fragment.texcoord;
+
+TEMP eyeNorm;
+TEMP coeff;
+TEMP shade;
+
+TEMP lVec;
+MOV lVec, program.env[1];
+
+TEMP lHalf;
+MOV lHalf, state.light[0].half;
+
+TEMP red;
+MOV red.x, 1.0;
+MOV red.y, 0.0;
+MOV red.z, 0.0;
+MOV red.w, 1.0;
+
+MOV eyeNorm, fTex;
+DP3 eyeNorm.w, eyeNorm, eyeNorm;
+RSQ eyeNorm.w, eyeNorm.w;
+MUL eyeNorm, eyeNorm, eyeNorm.w;
+
+MUL shade, state.lightmodel.ambient, fCol;
+DP3 coeff.x, lVec, eyeNorm;
+DP3 coeff.y, lHalf, eyeNorm;
+MOV coeff.w, state.material.shininess.x;
+LIT coeff, coeff;
+
+TEMP temp; 
+MUL temp, coeff.y, fCol;
+ADD shade, temp, shade;
+
+MUL temp, coeff.z, fCol;
+ADD shade, temp, shade;
+
+MOV result.color, shade;
+
+END
