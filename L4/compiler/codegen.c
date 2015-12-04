@@ -238,7 +238,7 @@ void genCodeRecurse(node *n) {
       genCodeRecurse(n->binary_expr.left);
 
       char buf[256];
-      if(binary_expr_level > max_binary_level){
+      if(binary_expr_level >= max_binary_level){
         sprintf(buf, "TEMP TEMP_LEFT%d;", binary_expr_level);
         dumpInstr(buf)
         max_binary_level++;
