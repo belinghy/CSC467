@@ -14,6 +14,7 @@ void genCode(node *ast){
 
 void genCodeRecurse(node *n) {
   static int if_stmt_level = 0; //at the top level
+  static int max_if_level = 0;
 
   if (n == NULL) return;
 
@@ -31,11 +32,6 @@ void genCodeRecurse(node *n) {
         dumpInstr("TEMP TEMP_VARI_UNIQUE2;") // used as a general variable to pass values
         dumpInstr("TEMP BIN_EXPR_TEMP_VAR_LEFT;") // used to store LHS value of binary expressions
         dumpInstr("TEMP BIN_EXPR_TEMP_VAR_RIGHT;") // used to store RHS value
-
-        sprintf(buf, "TEMP BOOL_EXPR_VALUE%d;", if_stmt_level); // used to store expression in IF statements
-        dumpInstr(buf)
-        sprintf(buf, "MOV BOOL_EXPR_VALUE%d, 0.5;", if_stmt_level); // used to store expression in IF statements
-        dumpInstr(buf)
         
         dumpInstr("TEMP TEMP_ARG0;") // used to store values in arguments
         dumpInstr("TEMP TEMP_ARG1;")
@@ -116,7 +112,11 @@ void genCodeRecurse(node *n) {
       char buf[256];
       char id_name[70];
       getVariableName(n->assignment_stmt.left, id_name);
-      sprintf(buf, "CMP %s, BOOL_EXPR_VALUE%d, %s, TEMP_VARI_UNIQUE;", id_name, if_stmt_level, id_name); /* Check for if statement */
+      if (if_stmt_level == 0) {
+        sprintf(buf, "MOV %s, TEMP_VARI_UNIQUE;", id_name);
+      } else {
+        sprintf(buf, "CMP %s, BOOL_EXPR_VALUE%d, %s, TEMP_VARI_UNIQUE;", id_name, if_stmt_level, id_name); /* Check for if statement */
+      }
       dumpInstr(buf)
 
       dumpInstr("# End Assignment\n")
@@ -125,31 +125,53 @@ void genCodeRecurse(node *n) {
     case IF_WITH_ELSE_STATEMENT_NODE:
     {
       genCodeRecurse(n->if_else_stmt.expression);
+
+      if_stmt_level++;
+      char buf[256];
+      if ( if_stmt_level > max_if_level ) {
+        max_if_level++;
+        sprintf(buf, "TEMP BOOL_EXPR_VALUE%d;", if_stmt_level);
+        dumpInstr(buf)
+        sprintf(buf, "TEMP ELSE_BOOL_EXPR_VALUE%d;", if_stmt_level);
+        dumpInstr(buf)
+      }
+      sprintf(buf, "MOV BOOL_EXPR_VALUE%d, TEMP_VARI_UNIQUE;", if_stmt_level); // used to store expression in IF statements
+      dumpInstr(buf)
+      sprintf(buf, "SUB BOOL_EXPR_VALUE%d, BOOL_EXPR_VALUE%d, 0.5;", if_stmt_level, if_stmt_level); // used to store expression in IF statements
+      dumpInstr(buf)
+      if ( if_stmt_level > 1 ) {
+        sprintf(buf, "MIN BOOL_EXPR_VALUE%d, BOOL_EXPR_VALUE%d, BOOL_EXPR_VALUE%d;", if_stmt_level, if_stmt_level, if_stmt_level-1); // used to store expression in IF statements
+        dumpInstr(buf)
+      }
+
       genCodeRecurse(n->if_else_stmt.then_stmt);
       genCodeRecurse(n->if_else_stmt.else_stmt);
-      // TODO: To print the instructions
-      // 1. Copy LHS variables into a new register
-      // 2. Copy LHS = (expression) ? then_stmt : else_stmt
 
+      if_stmt_level--;
       break;
     }
     case IF_STATEMENT_NODE:
     {
       genCodeRecurse(n->if_stmt.expression);
-      // Don't need to check expression, only need to know the truth value
+      
       if_stmt_level++;
       char buf[256];
-      sprintf(buf, "TEMP BOOL_EXPR_VALUE%d;", if_stmt_level);
-      dumpInstr(buf)
+      if ( if_stmt_level > max_if_level ) {
+        max_if_level++;
+        sprintf(buf, "TEMP BOOL_EXPR_VALUE%d;", if_stmt_level);
+        dumpInstr(buf)
+      }
       sprintf(buf, "MOV BOOL_EXPR_VALUE%d, TEMP_VARI_UNIQUE;", if_stmt_level); // used to store expression in IF statements
       dumpInstr(buf)
       sprintf(buf, "SUB BOOL_EXPR_VALUE%d, BOOL_EXPR_VALUE%d, 0.5;", if_stmt_level, if_stmt_level); // used to store expression in IF statements
       dumpInstr(buf)
+      if ( if_stmt_level > 1 ) {
+        sprintf(buf, "MIN BOOL_EXPR_VALUE%d, BOOL_EXPR_VALUE%d, BOOL_EXPR_VALUE%d;", if_stmt_level, if_stmt_level, if_stmt_level-1); // used to store expression in IF statements
+        dumpInstr(buf)
+      }
 
       genCodeRecurse(n->if_stmt.then_stmt);
-      // TODO: To print the instructions
-      // 1. Copy LHS variables into a new register
-      // 2. Copy LHS = (expression) ? then_stmt : LHS
+      if_stmt_level--;
 
       break;
     }
@@ -226,15 +248,18 @@ void genCodeRecurse(node *n) {
 
       } else if (n->binary_expr.op == AND) {
         dumpInstr("MIN TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
+        dumpInstr("SUB TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, 0.5;")
 
       } else if (n->binary_expr.op == OR) {
         dumpInstr("MAX TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
+        dumpInstr("SUB TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, 0.5;")
 
       } else if (n->binary_expr.op == EQ) {
         dumpInstr("\n# Equal")
         dumpInstr("SGE TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
         dumpInstr("SGE TEMP_VARI_UNIQUE2, BIN_EXPR_TEMP_VAR_LEFT, BIN_EXPR_TEMP_VAR_RIGHT;")
         dumpInstr("MIN TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE2;")
+        dumpInstr("SUB TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, 0.5;")
         dumpInstr("# End Equal\n")
 
       } else if (n->binary_expr.op == NEQ) {
@@ -242,12 +267,14 @@ void genCodeRecurse(node *n) {
         dumpInstr("SGE TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
         dumpInstr("SGE TEMP_VARI_UNIQUE2, BIN_EXPR_TEMP_VAR_LEFT, BIN_EXPR_TEMP_VAR_RIGHT;")
         dumpInstr("MIN TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE2;")
+        dumpInstr("SUB TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, 0.5;")
         dumpInstr("MUL TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, -1.0;")
         dumpInstr("# End Not-Equal\n")
 
       } else if (n->binary_expr.op == '<') {
         dumpInstr("\n# Less-than")
         dumpInstr("SLT TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_LEFT, BIN_EXPR_TEMP_VAR_RIGHT;")
+        dumpInstr("SUB TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, 0.5;")
         dumpInstr("# End Less-than\n")
 
       } else if (n->binary_expr.op == LEQ) {
@@ -255,8 +282,10 @@ void genCodeRecurse(node *n) {
         dumpInstr("SGE TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
         dumpInstr("SGE TEMP_VARI_UNIQUE2, BIN_EXPR_TEMP_VAR_LEFT, BIN_EXPR_TEMP_VAR_RIGHT;")
         dumpInstr("MIN TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE2;")
+        dumpInstr("SUB TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, 0.5;")
 
         dumpInstr("SLT TEMP_VARI_UNIQUE2, BIN_EXPR_TEMP_VAR_LEFT, BIN_EXPR_TEMP_VAR_RIGHT;")
+        dumpInstr("SUB TEMP_VARI_UNIQUE2, TEMP_VARI_UNIQUE2, 0.5;")
         dumpInstr("MAX TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE2;")
         dumpInstr("# End Less-than-Equal\n")
 
@@ -265,8 +294,10 @@ void genCodeRecurse(node *n) {
         dumpInstr("SGE TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
         dumpInstr("SGE TEMP_VARI_UNIQUE2, BIN_EXPR_TEMP_VAR_LEFT, BIN_EXPR_TEMP_VAR_RIGHT;")
         dumpInstr("MIN TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE2;")
+        dumpInstr("SUB TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, 0.5;")
 
         dumpInstr("SLT TEMP_VARI_UNIQUE2, BIN_EXPR_TEMP_VAR_LEFT, BIN_EXPR_TEMP_VAR_RIGHT;")
+        dumpInstr("SUB TEMP_VARI_UNIQUE2, TEMP_VARI_UNIQUE2, 0.5;")
         dumpInstr("MAX TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE2;")
         dumpInstr("MUL TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, -1.0;")
         dumpInstr("# End Greater-than\n")
@@ -274,6 +305,7 @@ void genCodeRecurse(node *n) {
       } else if (n->binary_expr.op == GEQ) {
         dumpInstr("\n# Greater-than")
         dumpInstr("SGE TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_LEFT, BIN_EXPR_TEMP_VAR_RIGHT;")
+        dumpInstr("SUB TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, 0.5;")
         dumpInstr("# End Greater-than\n")
 
       } else {
@@ -288,9 +320,9 @@ void genCodeRecurse(node *n) {
     {
       // true : 1.0, false : 0.0
       if (n->bool_literal.value) {
-        dumpInstr("MOV TEMP_VARI_UNIQUE, 1.0;")  
+        dumpInstr("MOV TEMP_VARI_UNIQUE, 0.5;")  
       } else {
-        dumpInstr("MOV TEMP_VARI_UNIQUE, 0.0;")
+        dumpInstr("MOV TEMP_VARI_UNIQUE, -0.5;")
       }
       break;
     }
