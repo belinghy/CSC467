@@ -15,6 +15,8 @@ void genCode(node *ast){
 void genCodeRecurse(node *n) {
   static int if_stmt_level = 0; //at the top level
   static int max_if_level = 0;
+  static int binary_expr_level = 0;
+  static int max_binary_level = 0;
 
   if (n == NULL) return;
 
@@ -137,7 +139,9 @@ void genCodeRecurse(node *n) {
       }
       sprintf(buf, "MOV BOOL_EXPR_VALUE%d, TEMP_VARI_UNIQUE;", if_stmt_level); // used to store expression in IF statements
       dumpInstr(buf)
-      sprintf(buf, "SUB BOOL_EXPR_VALUE%d, BOOL_EXPR_VALUE%d, 0.5;", if_stmt_level, if_stmt_level); // used to store expression in IF statements
+      sprintf(buf, "MOV ELSE_BOOL_EXPR_VALUE%d, TEMP_VARI_UNIQUE;", if_stmt_level);  // used to store expression in ELSE statements
+      dumpInstr(buf)
+      sprintf(buf, "MUL ELSE_BOOL_EXPR_VALUE%d, ELSE_BOOL_EXPR_VALUE%d, -1;", if_stmt_level, if_stmt_level);  // used to store expression in ELSE statements
       dumpInstr(buf)
       if ( if_stmt_level > 1 ) {
         sprintf(buf, "MIN BOOL_EXPR_VALUE%d, BOOL_EXPR_VALUE%d, BOOL_EXPR_VALUE%d;", if_stmt_level, if_stmt_level, if_stmt_level-1); // used to store expression in IF statements
@@ -145,6 +149,15 @@ void genCodeRecurse(node *n) {
       }
 
       genCodeRecurse(n->if_else_stmt.then_stmt);
+
+      if ( if_stmt_level > 1 ) {
+        sprintf(buf, "MIN BOOL_EXPR_VALUE%d, ELSE_BOOL_EXPR_VALUE%d, BOOL_EXPR_VALUE%d;", if_stmt_level, if_stmt_level, if_stmt_level-1); // used to store expression in IF statements
+        dumpInstr(buf)
+      } else if(if_stmt_level == 1){
+        sprintf(buf, "MOV BOOL_EXPR_VALUE%d, ELSE_BOOL_EXPR_VALUE%d;", if_stmt_level, if_stmt_level); // used to store expression in IF statements
+        dumpInstr(buf)
+      }
+
       genCodeRecurse(n->if_else_stmt.else_stmt);
 
       if_stmt_level--;
@@ -162,8 +175,6 @@ void genCodeRecurse(node *n) {
         dumpInstr(buf)
       }
       sprintf(buf, "MOV BOOL_EXPR_VALUE%d, TEMP_VARI_UNIQUE;", if_stmt_level); // used to store expression in IF statements
-      dumpInstr(buf)
-      sprintf(buf, "SUB BOOL_EXPR_VALUE%d, BOOL_EXPR_VALUE%d, 0.5;", if_stmt_level, if_stmt_level); // used to store expression in IF statements
       dumpInstr(buf)
       if ( if_stmt_level > 1 ) {
         sprintf(buf, "MIN BOOL_EXPR_VALUE%d, BOOL_EXPR_VALUE%d, BOOL_EXPR_VALUE%d;", if_stmt_level, if_stmt_level, if_stmt_level-1); // used to store expression in IF statements
@@ -225,10 +236,26 @@ void genCodeRecurse(node *n) {
     {
       dumpInstr("\n# Binary Expression")
       genCodeRecurse(n->binary_expr.left);
-      dumpInstr("MOV BIN_EXPR_TEMP_VAR_LEFT, TEMP_VARI_UNIQUE;")
+
+      char buf[256];
+      if(binary_expr_level > max_binary_level){
+        sprintf(buf, "TEMP TEMP_LEFT%d;", binary_expr_level);
+        dumpInstr(buf)
+        max_binary_level++;
+      }
+      sprintf(buf, "MOV TEMP_LEFT%d, TEMP_VARI_UNIQUE;", binary_expr_level);
+      dumpInstr(buf)
+
+      binary_expr_level++;
 
       genCodeRecurse(n->binary_expr.right);
+
+      binary_expr_level--;
+
       dumpInstr("MOV BIN_EXPR_TEMP_VAR_RIGHT, TEMP_VARI_UNIQUE;")
+      sprintf(buf, "MOV BIN_EXPR_TEMP_VAR_LEFT, TEMP_LEFT%d;", binary_expr_level);
+      dumpInstr(buf)
+
 
       // FIXME: add other operators
       if (n->binary_expr.op == '+') {
@@ -241,18 +268,17 @@ void genCodeRecurse(node *n) {
         dumpInstr("MUL TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
 
       } else if (n->binary_expr.op == '^') {
-        dumpInstr("POW TEMP_VARI_UNIQUE.x, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
+        dumpInstr("POW TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_LEFT.x, BIN_EXPR_TEMP_VAR_RIGHT.x;")
 
       } else if (n->binary_expr.op == '/') {
-        dumpInstr("RCP TEMP_VARI_UNIQUE.x, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
+        dumpInstr("RCP TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT.x;")
+        dumpInstr("MUL TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_LEFT, TEMP_VARI_UNIQUE;")
 
       } else if (n->binary_expr.op == AND) {
         dumpInstr("MIN TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
-        dumpInstr("SUB TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, 0.5;")
 
       } else if (n->binary_expr.op == OR) {
         dumpInstr("MAX TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
-        dumpInstr("SUB TEMP_VARI_UNIQUE, TEMP_VARI_UNIQUE, 0.5;")
 
       } else if (n->binary_expr.op == EQ) {
         dumpInstr("\n# Equal")
