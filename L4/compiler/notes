@@ -13,3 +13,26 @@ gl_Material_Shininess -> state.material.shininess
 env1 -> program.env[1]
 env2 -> program.env[2]
 env3 -> program.env[3]
+
+
+
+BOOL_EXPR_VALUE
+ELSE_BOOL_EXPR_VALUE
+TEMP_LEFT
+TEMP_VARI_UNIQUE
+TEMP_VARI_UNIQUE2
+BIN_EXPR_TEMP_VAR_LEFT
+BIN_EXPR_TEMP_VAR_RIGHT
+TEMP_ARG0
+TEMP_ARG1
+TEMP_ARG2
+TEMP_ARG3
+
+if ((strstr(id, "BOOL_EXPR_VALUE") != NULL) ||
+      (strstr(id, "ELSE_BOOL_EXPR_VALUE") != NULL) ||
+      (strstr(id, "TEMP_LEFT") != NULL) ||
+      (strstr(id, "TEMP_VARI_UNIQUE") != NULL) ||
+      (strstr(id, "BIN_EXPR_TEMP_VAR_LEFT") != NULL) ||
+      (strstr(id, "BIN_EXPR_TEMP_VAR_RIGHT") != NULL) ||
+      (strstr(id, "TEMP_ARG") != NULL)) {
+      }
