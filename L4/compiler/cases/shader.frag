@@ -1,3 +1,4 @@
+/* original demo 1 shader (test 1)*/
 { 
    vec4 temp;
 if (true){

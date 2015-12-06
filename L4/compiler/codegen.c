@@ -256,13 +256,11 @@ void genCodeRecurse(node *n) {
       sprintf(buf, "MOV BIN_EXPR_TEMP_VAR_LEFT, TEMP_LEFT%d;", binary_expr_level);
       dumpInstr(buf)
 
-
-      // FIXME: add other operators
       if (n->binary_expr.op == '+') {
         dumpInstr("ADD TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
 
       } else if (n->binary_expr.op == '-') {
-        dumpInstr("SUB TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
+        dumpInstr("SUB TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_LEFT, BIN_EXPR_TEMP_VAR_RIGHT;")
 
       } else if (n->binary_expr.op == '*') {
         dumpInstr("MUL TEMP_VARI_UNIQUE, BIN_EXPR_TEMP_VAR_RIGHT, BIN_EXPR_TEMP_VAR_LEFT;")
@@ -344,7 +342,7 @@ void genCodeRecurse(node *n) {
     }
     case BOOL_NODE:
     {
-      // true : 1.0, false : 0.0
+      // true : 0.5, false : -0.5
       if (n->bool_literal.value) {
         dumpInstr("MOV TEMP_VARI_UNIQUE, 0.5;")  
       } else {
