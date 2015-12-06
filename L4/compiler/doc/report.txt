@@ -2,6 +2,11 @@ CSC467 Phase 4 Report
 
 Testing
 Under the cases/ directory, we include several *.frag files that test various cases of the code.
+We implemented the compiler flags such that the command 
+
+./compiler467 -Dx -U frag.txt cases/test.frag 
+
+will generate the assembly code for test.frag into frag.txt.
 
 Breakdown of work 
 We took turns constructing the general file and structure of the genCode function, and then implemented the code for each node either separately or through paired programming and discussion. Testing was also done either separately or together with discussion. The code was shared through a Github account.
