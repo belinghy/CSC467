@@ -1,0 +1,36 @@
+CSC467 Phase 4 Report
+
+Testing
+Under the cases/ directory, we include several *.frag files that test various cases of the code.
+
+Breakdown of work 
+We took turns constructing the general file and structure of the genCode function, and then implemented the code for each node either separately or through paired programming and discussion. Testing was also done either separately or together with discussion. The code was shared through a Github account.
+
+Approach
+* Non-trivial math operations
+- Multiplication is implemented with the MUL operation, which has the effect of  viewing each scalar argument, if any, as a vector of length 4 of the same scalar, and multiplying element-wise.
+- Unary minus is implemented by using the MUL operation with constant -1, which has the effect of multiplying each vector by a vector of -1.
+- Division is implemented by taking the reciprocal of the right argument with RCP and multiplying to the left argument with MUL. Since division is only for scalar arguments, we assume that the value of the scalar will be stored in all of the components of each of the arguments. 
+
+* Boolean types
+- Boolean types are implemented with 0.5 representing true and -0.5 representing false. This means that with the CMP operator, false will result in the left argument being moved, and true will result in the right argument being moved.
+- AND is implemented with the MIN operator.
+- OR is implemented with the MAX operator.
+- Other comparison operators are implemented with a combination of AND, OR, and the SGE and SLT operators. 
+- Since the result of SGE and SLT return 0 for false and 1 for true, we subtract 1 after each operation to consistently have +-0.5 for the boolean values.
+
+* If statements
+For each if statement, we declare a temporary variable BOOL_EXPR_VALUE#, where # is an integer that is incremented with each nested if statement. The temporary variable stores the boolean value that the expression of the if statement evaluates to, AND-ed with the expression value of any enclosing if statements. In the case of else statements, the expression is negated, and then AND-ed with expression of the enclosing statement. Thus, BOOL_EXPR_VALUE# always contains the boolean value that CMP can check against to determine if each statement is executed or not. For each assignment statement where # is greater than zero, instead of MOV, we use CMP with BOOL_EXPR_VALUE# to either execute the assignment statement or not, depending on the expression of the if statement.
+
+* Constants
+Each constant is moved into a temporary variable, which is then used in the expression that makes use of the constant.
+
+* Code for each type of node
+- In general, for each node, we generate code specific to that node and recurse to generate the code for its children.
+- For scope nodes, if it is the first scope, we declare some of the temporary variables that we require, such as the expression temporary variable, and the series of temporary argument variables. We also declare the header and footer for the program.
+- For declaration nodes, we declare the variable and we recurse to generate code to evaluate the expression node, if applicable, so that the value of the expression is stored in the designated expression temporary variable, which we then MOV into the declared variable.
+- For assignment nodes, we similarly evaluate the expression and MOV the value into the variable, or, if we are in an if statement, use CMP.
+- For if and if-else nodes, see the description for if statements above.
+- For all expressions, we recurse to ensure that sub-expressions have stored their values into the expression temporary variable, and then evaluate the current expression and store the current result into the expression temporary variable.
+- For constructor and function nodes, we recurse to ensure that the arguments are stored in the argument temporary variables, and we store the result of the function, or the newly constructed variable into the expression temporary variable.
+- For arguments, for each argument node, we store the expression temporary variable into the next temporary argument variable.
